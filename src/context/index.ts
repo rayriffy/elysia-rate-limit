@@ -1,4 +1,4 @@
-import { getNextResetTime } from 'services/getNextResetTime'
+import { getNextResetTime } from '../services/getNextResetTime'
 import type { Options } from '../@types/Options'
 
 export class Context {
