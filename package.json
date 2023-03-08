@@ -1,0 +1,40 @@
+{
+  "name": "elysia-rate-limit",
+  "version": "1.0.0",
+  "description": "Rate-limiter for Elysia.js",
+  "author": {
+    "name": "rayriffy",
+    "url": "https://github.com/rayriffy",
+    "email": "mail@rayriffy.com"
+  },
+  "main": "./dist/index.js",
+  "exports": {
+    "require": "./dist/index.js",
+    "import": "./dist/index.js",
+    "node": "./dist/index.js",
+    "default": "./dist/index.js"
+  },
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "dev": "bun run --hot example/index.ts",
+    "build": "rm -rf dist && tsc --project tsconfig.esm.json"
+  },
+  "keywords": [
+    "elysia",
+    "rate",
+    "limit",
+    "ratelimit",
+    "rate-limit"
+  ],
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {
+    "bun-types": "^0.5.7",
+    "elysia": "^0.3.0-rc.2",
+    "prettier": "^2.8.4",
+    "typescript": "^4.9.5"
+  },
+  "peerDependencies": {
+    "elysia": ">= 0.2.0"
+  }
+}
