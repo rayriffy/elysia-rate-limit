@@ -71,3 +71,17 @@ Message to be sent when rate limit was reached
 `(request: Request): string | Promise<string>`
 
 Custom key generator to categorize client requests, return as a string.
+
+### context
+
+`Context`
+
+Context for storing requests count for each client, if you want to implement your own `Context` you can write it to comply with [`Context`](./src/@types/Context.ts) protocol
+
+```ts
+import type { Context } from 'elysia-rate-limit'
+
+export class CustomContext implements Context {
+  // implementation here
+}
+```

@@ -1,4 +1,5 @@
 import { keyGenerator } from '../services/keyGenerator'
+import { DefaultContext } from '../context/default'
 
 import type { Options } from '../@types/Options'
 
@@ -8,4 +9,5 @@ export const defaultOptions: Options = {
   responseCode: 429,
   responseMessage: 'rate-limit reached',
   generator: keyGenerator,
+  context: new DefaultContext()
 }

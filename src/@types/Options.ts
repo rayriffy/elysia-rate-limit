@@ -1,3 +1,5 @@
+import { Context } from "./Context"
+
 export interface Options {
   // The duration for plugin to remember the requests (Default: 60000ms)
   duration: number
@@ -13,4 +15,7 @@ export interface Options {
 
   // key generator function to categorize client for rate-limiting
   generator(request: Request): Promise<string> | string
+
+  // context for storing requests count
+  context: Context
 }

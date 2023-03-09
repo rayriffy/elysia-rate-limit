@@ -1,4 +1,3 @@
-import { Context } from '../context'
 import { defaultOptions } from '../constants/defaultOptions'
 
 import Elysia from 'elysia'
@@ -10,13 +9,13 @@ export const plugin = (userOptions?: Partial<Options>) => {
     ...userOptions,
   }
 
-  const context = new Context(options)
+  options.context.init(options)
 
   return (app: Elysia) => {
     app.onBeforeHandle(async ({ set, request, store }) => {
       const clientKey = await options.generator(request)
 
-      const { count, nextReset } = await context.increment(clientKey)
+      const { count, nextReset } = await options.context.increment(clientKey)
 
       const payload = {
         limit: options.max,
@@ -42,11 +41,11 @@ export const plugin = (userOptions?: Partial<Options>) => {
 
     app.onError(async ({ request }) => {
       const clientKey = await options.generator(request)
-      await context.decrement(clientKey)
+      await options.context.decrement(clientKey)
     })
 
-    app.onStop(() => {
-      context.kill()
+    app.onStop(async () => {
+      await options.context.kill()
     })
 
     return app

@@ -1,7 +1,9 @@
 import { getNextResetTime } from '../services/getNextResetTime'
-import type { Options } from '../@types/Options'
 
-export class Context {
+import type { Options } from '../@types/Options'
+import { Context } from '../@types/Context'
+
+export class DefaultContext implements Context {
   store!: {
     [key: string]: number
   }
@@ -10,7 +12,7 @@ export class Context {
   nextReset!: Date
   intervalId?: Timer
 
-  constructor(options: Options) {
+  init (options: Options) {
     this.duration = options.duration
     this.store = {}
     this.nextReset = getNextResetTime(options.duration)
