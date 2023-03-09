@@ -15,12 +15,15 @@ export interface Options {
   // message response when rate-limit reached (Default: rate-limit reached)
   responseMessage: string
 
+  // should rate limit being counted when request result is failed (Default: false)
+  countFailedRequest: boolean
+
   // key generator function to categorize client for rate-limiting
   generator(request: Request): MaybePromise<string>
 
   // context for storing requests count
   context: Context
 
-  // exposed functions for writing custom script to skip counting i.e. not counting rate limit for some requests
+  // exposed functions for writing custom script to skip counting i.e. not counting rate limit for some requests (Default: always return false)
   skip: (request: Request) => MaybePromise<boolean>
 }

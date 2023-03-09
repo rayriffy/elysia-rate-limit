@@ -56,6 +56,8 @@ Maximum of request to be allowed during 1 `duration` timeframe.
 
 `number`
 
+Default: `429`
+
 HTTP reponse code to be sent when rate limit was reached. By default, it will return `429 Too Many Requests` refering to [RFC 6585 specification](https://www.rfc-editor.org/rfc/rfc6585#section-4)
 
 ### responseMessage
@@ -71,6 +73,14 @@ Message to be sent when rate limit was reached
 `(request: Request): string | Promise<string>`
 
 Custom key generator to categorize client requests, return as a string.
+
+### countFailedRequest
+
+`boolean`
+
+Default: `false`
+
+Should this plugin count rate-limit to user when request failed? By default, this plugin will refund request count to client when `onError` lifecycle called. ([Learn more in Lifecycle](https://elysiajs.com/concept/middleware.html#life-cycle))
 
 ### context
 
@@ -89,5 +99,7 @@ export class CustomContext implements Context {
 ### skip
 
 `(request: Request): boolean | Promise<boolean>`
+
+Default: `(): false`
 
 A custom function to determine that should this request be counted into rate-limit or not based on information given by `Request` object (i.e. Skip counting rate-limit on some route), by default this will always return `false` which means counted everything.

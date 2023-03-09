@@ -43,8 +43,10 @@ export const plugin = (userOptions?: Partial<Options>) => {
     })
 
     app.onError(async ({ request }) => {
-      const clientKey = await options.generator(request)
-      await options.context.decrement(clientKey)
+      if (options.countFailedRequest === false) {
+        const clientKey = await options.generator(request)
+        await options.context.decrement(clientKey)
+      }
     })
 
     app.onStop(async () => {
