@@ -1,4 +1,6 @@
-import { Context } from "./Context"
+import type { MaybePromise } from "elysia"
+
+import type { Context } from "./Context"
 
 export interface Options {
   // The duration for plugin to remember the requests (Default: 60000ms)
@@ -14,8 +16,11 @@ export interface Options {
   responseMessage: string
 
   // key generator function to categorize client for rate-limiting
-  generator(request: Request): Promise<string> | string
+  generator(request: Request): MaybePromise<string>
 
   // context for storing requests count
   context: Context
+
+  // exposed functions for writing custom script to skip counting i.e. not counting rate limit for some requests
+  skip: (request: Request) => MaybePromise<boolean>
 }
