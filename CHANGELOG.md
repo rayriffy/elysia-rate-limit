@@ -1,5 +1,11 @@
 # elysia-rate-limit
 
+## 1.2.0
+
+### Minor Changes
+
+- 89d308c: securely signed package with provenance
+
 ## 1.1.0
 
 ### Minor Changes
