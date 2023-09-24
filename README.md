@@ -64,7 +64,7 @@ HTTP reponse code to be sent when rate limit was reached. By default, it will re
 
 `string`
 
-Default: `10`
+Default: `rate-limit reached`
 
 Message to be sent when rate limit was reached
 
