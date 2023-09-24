@@ -1,0 +1,37 @@
+name: Release
+on:
+  push:
+    branches:
+      - main
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: write
+      packages: write
+      pull-requests: write
+      issues: read
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+      - name: bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+      - name: install
+        run: bun i
+      - name: build
+        run: bun run build
+      - name: changesets
+        id: changesets
+        uses: changesets/action@v1
+        with:
+          publish: bun changeset publish
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: true
