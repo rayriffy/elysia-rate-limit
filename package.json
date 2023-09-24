@@ -7,6 +7,10 @@
     "url": "https://github.com/rayriffy",
     "email": "mail@rayriffy.com"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rayriffy/elysia-rate-limit.git"
+  },
   "main": "./dist/index.js",
   "exports": {
     "require": "./dist/index.js",
