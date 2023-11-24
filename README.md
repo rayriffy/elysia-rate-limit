@@ -61,6 +61,17 @@ Message to be sent when rate limit was reached
 
 Custom key generator to categorize client requests, return as a string. By default, this plugin will categorize client by their IP address via [`server.requestIP()` function](https://github.com/oven-sh/bun/pull/6165).
 
+If you deploy your server behind a proxy (i.e. NGINX, Cloudflare), you may need to implement your own generator to get client's real IP address.
+
+```js
+const cloudflareGenerator = (req, server) =>
+  // get client ip via cloudflare header first
+  req.headers.get('CF-Connecting-IP')
+  // if not found, fallback to default generator
+  ?? server?.requestIP(req)?.address
+  ?? ''
+```
+
 ### countFailedRequest
 
 `boolean`
