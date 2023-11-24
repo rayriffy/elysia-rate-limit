@@ -1,8 +1,12 @@
 import Elysia from 'elysia'
+import debug from 'debug'
 
 import { defaultOptions } from '../constants/defaultOptions'
 
 import type { Options } from '../@types/Options'
+
+const logger = (unit: string, formatter: any, ...params: any[]) =>
+  debug('elysia-rate-limit:' + unit)(formatter, ...params)
 
 export const plugin = (userOptions?: Partial<Options>) => {
   const options: Options = {
@@ -13,9 +17,11 @@ export const plugin = (userOptions?: Partial<Options>) => {
   options.context.init(options)
 
   return (app: Elysia) => {
-    app.onBeforeHandle(async ({ set, request, store }) => {
-      if (await options.skip(request) === false) {
-        const clientKey = await options.generator(request)
+    app.onBeforeHandle(async ({ set, request }) => {
+      if ((await options.skip(request)) === false) {
+        const clientKey = await options.generator(request, app.server)
+
+        logger('generator', 'generated key is %s', clientKey)
 
         const { count, nextReset } = await options.context.increment(clientKey)
 
@@ -35,7 +41,9 @@ export const plugin = (userOptions?: Partial<Options>) => {
 
         // reject if limit were reached
         if (payload.current >= payload.limit + 1) {
-          set.headers['Retry-After'] = String(Math.ceil(options.duration / 1000))
+          set.headers['Retry-After'] = String(
+            Math.ceil(options.duration / 1000)
+          )
           set.status = options.responseCode
           return options.responseMessage
         }
@@ -44,7 +52,7 @@ export const plugin = (userOptions?: Partial<Options>) => {
 
     app.onError(async ({ request }) => {
       if (options.countFailedRequest === false) {
-        const clientKey = await options.generator(request)
+        const clientKey = await options.generator(request, app.server)
         await options.context.decrement(clientKey)
       }
     })

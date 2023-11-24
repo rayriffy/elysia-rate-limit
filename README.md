@@ -1,17 +1,16 @@
-Elysia Rate Limit
-===
+# Elysia Rate Limit
 
 Lightweight rate limiter plugin for [Elysia.js](https://elysiajs.com/)
 
-Install
----
+## Install
 
 ```
 bun add elysia-rate-limit
 ```
 
-Usage
----
+If you're using Bun v1.0.3 or lower, `elysia-rate-limit` v2.0.0 or higher will not be compatible. Please use `elysia-rate-limit` [v1.3.0](https://github.com/rayriffy/elysia-rate-limit/releases/tag/v1.3.0) instead.
+
+## Usage
 
 Check out full sample at [`example`](example/index.ts)
 
@@ -19,22 +18,10 @@ Check out full sample at [`example`](example/index.ts)
 import { Elysia } from 'elysia'
 import { rateLimit } from 'elysia-rate-limit'
 
-new Elysia()
-  .use(rateLimit())
-  .listen(3000)
+new Elysia().use(rateLimit()).listen(3000)
 ```
 
-Limitation
----
-
-In order to determine rate limit for each client, by defaults we're determined by using client's IP address.
-
-But unfortunately, `Bun.serve()` implementation of `Request` object does not add anything extra beyond the standard [which you can see in the disscussion in Discord](https://discord.com/channels/876711213126520882/1006494319697461298). The best thing I can do is to indentifying client IP address by using fowarded header from proxy server (i.e. Cloudflare, NGINX, App Engine).
-
-If you have your own way to determine rate limit for client (i.e. by using client API key instead of IP). Feel free to write your own implementation by using [`generator`](#generator) option
-
-Configuration
----
+## Configuration
 
 ### duration
 
@@ -70,9 +57,9 @@ Message to be sent when rate limit was reached
 
 ### generator
 
-`(request: Request): string | Promise<string>`
+`(request: Request, server: Server): string | Promise<string>`
 
-Custom key generator to categorize client requests, return as a string.
+Custom key generator to categorize client requests, return as a string. By default, this plugin will categorize client by their IP address via [`server.requestIP()` function](https://github.com/oven-sh/bun/pull/6165).
 
 ### countFailedRequest
 

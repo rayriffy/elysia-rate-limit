@@ -1,27 +1,17 @@
-export const keyGenerator = (request: Request): string => {
-  const headers = [
-    // Cloudflare
-    'cf-connecting-ip',
-    // Firebase, Fastly
-    'fastly-client-ip',
-    // Akamai
-    'true-client-ip',
-    // Google App Engine
-    'x-appengine-user-ip',
-    // NGINX
-    'x-real-ip',
-    // Standard
-    'x-forwarded-for',
-    'x-client-ip',
-  ]
+import type { Server } from 'bun'
 
-  for (const header of headers) {
-    const value = request.headers.get(header)
-    if (value !== null) return value
+export const keyGenerator = (
+  request: Request,
+  server: Server | null
+): string => {
+  const clientAddress = server?.requestIP(request)?.address
+
+  if (clientAddress === undefined) {
+    console.log(
+      '[elysia-rate-limit] generator is unable to determine client IP address. Are you using older version of Bun?'
+    )
+    return ''
+  } else {
+    return clientAddress
   }
-
-  console.log(
-    "WARN Bun.serve()'s Request object does not implement anything beyond Request object standard, it is currently deemed to be impossible to use this rate limit plugin unless there're IP provided by proxy server. However, you can write your own key generator via `generator` option"
-  )
-  return ''
 }
