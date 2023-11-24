@@ -1,5 +1,11 @@
 # elysia-rate-limit
 
+## 1.3.0
+
+### Minor Changes
+
+- a5a0b02: bump minimum peer dependency verison of elysia to 0.7.15
+
 ## 1.2.0
 
 ### Minor Changes
