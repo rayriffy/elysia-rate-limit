@@ -49,7 +49,7 @@ HTTP reponse code to be sent when rate limit was reached. By default, it will re
 
 ### responseMessage
 
-`string`
+`any`
 
 Default: `rate-limit reached`
 
