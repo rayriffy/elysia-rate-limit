@@ -1,5 +1,11 @@
 # elysia-rate-limit
 
+## 2.0.1
+
+### Patch Changes
+
+- d84ebbd: responseMessage type has been changed to `any`, so you can actually return response as anything (i.e. object)
+
 ## 2.0.0
 
 ### Major Changes
