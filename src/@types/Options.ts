@@ -14,7 +14,7 @@ export interface Options {
   responseCode: number
 
   // message response when rate-limit reached (Default: rate-limit reached)
-  responseMessage: string
+  responseMessage: any
 
   // should rate limit being counted when request result is failed (Default: false)
   countFailedRequest: boolean
