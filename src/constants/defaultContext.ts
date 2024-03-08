@@ -37,7 +37,10 @@ export class DefaultContext implements Context {
 
   async reset(key?: string) {
     if (typeof key === 'string') delete this.store[key]
-    else this.store = {}
+    else {
+      this.store = {}
+      this.nextReset = getNextResetTime(this.duration)
+    }
   }
 
   kill() {
