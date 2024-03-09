@@ -1,5 +1,11 @@
 # elysia-rate-limit
 
+## 2.1.0
+
+### Minor Changes
+
+- 0f53f96: reset the clock when attempting to manually reset the context ([#10](https://github.com/rayriffy/elysia-rate-limit/pull/10))
+
 ## 2.0.1
 
 ### Patch Changes
