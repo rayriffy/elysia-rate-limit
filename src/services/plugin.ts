@@ -39,6 +39,17 @@ export const plugin = (userOptions?: Partial<Options>) => {
           Math.max(0, Math.ceil((nextReset.getTime() - Date.now()) / 1000))
         )
 
+        // Don't apply any rate limiting if in the allow list
+        if (options.allowList) {
+          if (typeof options.allowList === 'function') {
+            if (await options.allowList(request, clientKey)) {
+              return
+            }
+          } else if (options.allowList.indexOf(clientKey) !== -1) {
+            return
+          }
+        }
+
         // reject if limit were reached
         if (payload.current >= payload.limit + 1) {
           set.headers['Retry-After'] = String(
