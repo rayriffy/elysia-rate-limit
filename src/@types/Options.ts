@@ -26,10 +26,5 @@ export interface Options {
   context: Context
 
   // exposed functions for writing custom script to skip counting i.e. not counting rate limit for some requests (Default: always return false)
-  skip: (request: Request) => MaybePromise<boolean>
-
-  // list of keys to be excluded from rate-limiting
-  allowList?:
-    | string[]
-    | ((req: Request, key: string) => boolean | Promise<boolean>)
+  skip: (req: Request, key?: string) => boolean | Promise<boolean>
 }

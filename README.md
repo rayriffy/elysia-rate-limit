@@ -101,11 +101,3 @@ export class CustomContext implements Context {
 Default: `(): false`
 
 A custom function to determine that should this request be counted into rate-limit or not based on information given by `Request` object (i.e. Skip counting rate-limit on some route), by default this will always return `false` which means counted everything.
-
-### allowList
-
-`| string[] | ((req: Request, key: string) => boolean | Promise<boolean>)`
-
-Default: `[]`
-
-A list of keys to be excluded from rate-limiting. It can be an array of strings, or a function that takes a `Request` object and the key and returns a boolean or a Promise of a boolean.

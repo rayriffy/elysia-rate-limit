@@ -12,5 +12,4 @@ export const defaultOptions: Options = {
   generator: keyGenerator,
   context: new DefaultContext(),
   skip: () => false,
-  allowList: [],
 }

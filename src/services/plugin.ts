@@ -18,7 +18,7 @@ export const plugin = (userOptions?: Partial<Options>) => {
 
   return (app: Elysia) => {
     app.onBeforeHandle(async ({ set, request }) => {
-      if ((await options.skip(request)) === false) {
+      if (options.skip.length < 2 && (await options.skip(request)) === false) {
         const clientKey = await options.generator(request, app.server)
 
         logger('generator', 'generated key is %s', clientKey)
@@ -39,15 +39,11 @@ export const plugin = (userOptions?: Partial<Options>) => {
           Math.max(0, Math.ceil((nextReset.getTime() - Date.now()) / 1000))
         )
 
-        // Don't apply any rate limiting if in the allow list
-        if (options.allowList) {
-          if (typeof options.allowList === 'function') {
-            if (await options.allowList(request, clientKey)) {
-              return
-            }
-          } else if (options.allowList.indexOf(clientKey) !== -1) {
-            return
-          }
+        if (
+          options.skip.length > 1 &&
+          (await options.skip(request, clientKey))
+        ) {
+          return
         }
 
         // reject if limit were reached
