@@ -18,7 +18,10 @@ export const plugin = (userOptions?: Partial<Options>) => {
 
   return (app: Elysia) => {
     app.onBeforeHandle(async ({ set, request }) => {
-      if ((await options.skip(request)) === false) {
+      if (
+        options.skip.length < 2 &&
+        (await (options.skip as any)(request)) === false
+      ) {
         const clientKey = await options.generator(request, app.server)
 
         logger('generator', 'generated key is %s', clientKey)
@@ -38,6 +41,13 @@ export const plugin = (userOptions?: Partial<Options>) => {
         set.headers['RateLimit-Reset'] = String(
           Math.max(0, Math.ceil((nextReset.getTime() - Date.now()) / 1000))
         )
+
+        if (
+          options.skip.length > 1 &&
+          (await options.skip(request, clientKey))
+        ) {
+          return
+        }
 
         // reject if limit were reached
         if (payload.current >= payload.limit + 1) {
