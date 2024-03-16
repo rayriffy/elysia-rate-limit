@@ -18,7 +18,10 @@ export const plugin = (userOptions?: Partial<Options>) => {
 
   return (app: Elysia) => {
     app.onBeforeHandle(async ({ set, request }) => {
-      if (options.skip.length < 2 && (await options.skip(request)) === false) {
+      if (
+        options.skip.length < 2 &&
+        (await (options.skip as any)(request)) === false
+      ) {
         const clientKey = await options.generator(request, app.server)
 
         logger('generator', 'generated key is %s', clientKey)

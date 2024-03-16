@@ -26,5 +26,5 @@ export interface Options {
   context: Context
 
   // exposed functions for writing custom script to skip counting i.e. not counting rate limit for some requests (Default: always return false)
-  skip: (req: Request, key?: string) => boolean | Promise<boolean>
+  skip: (req: Request, key: string) => boolean | Promise<boolean>
 }

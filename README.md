@@ -96,8 +96,8 @@ export class CustomContext implements Context {
 
 ### skip
 
-`(request: Request): boolean | Promise<boolean>`
+`(request: Request, key: string): boolean | Promise<boolean>`
 
 Default: `(): false`
 
-A custom function to determine that should this request be counted into rate-limit or not based on information given by `Request` object (i.e. Skip counting rate-limit on some route), by default this will always return `false` which means counted everything.
+A custom function to determine that should this request be counted into rate-limit or not based on information given by `Request` object (i.e. Skip counting rate-limit on some route) and the key of the given request, by default this will always return `false` which means counted everything.
