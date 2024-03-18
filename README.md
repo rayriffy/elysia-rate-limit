@@ -10,6 +10,16 @@ bun add elysia-rate-limit
 
 If you're using Bun v1.0.3 or lower, `elysia-rate-limit` v2.0.0 or higher will not be compatible. Please use `elysia-rate-limit` [v1.3.0](https://github.com/rayriffy/elysia-rate-limit/releases/tag/v1.3.0) instead.
 
+## Compatibility
+
+As long as you're on latest version of Bun, and Elysia. Using latest version of `elysia-rate-limit` would works just fine. However, please refer to following table to determine which version to use.
+
+| Plugin version | Requirements |
+| - | - |
+| 3.0.0+ | Bun > 1.0.3, Elysia >= 1.0.0 |
+| 2.0.0 - 2.2.0 | Bun > 1.0.3, Elysia < 1.0.0 |
+| 1.0.2 - 1.3.0 | Bun <= 1.0.3, Elysia < 1.0.0 |
+
 ## Usage
 
 Check out full sample at [`example`](example/index.ts)
