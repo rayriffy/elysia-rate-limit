@@ -1,5 +1,11 @@
 # elysia-rate-limit
 
+## 3.0.0
+
+### Major Changes
+
+- 693125a: **Breaking change** Plugin compatibility with [Elysia 1.0](elysiajs.com/blog/elysia-10.html). Please refer to compatibility list in README for older Elysia, Bun versions.
+
 ## 2.2.0
 
 ### Minor Changes
