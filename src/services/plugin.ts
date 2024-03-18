@@ -1,4 +1,4 @@
-import Elysia from 'elysia'
+import type Elysia from 'elysia'
 import debug from 'debug'
 
 import { defaultOptions } from '../constants/defaultOptions'
@@ -17,7 +17,7 @@ export const plugin = (userOptions?: Partial<Options>) => {
   options.context.init(options)
 
   return (app: Elysia) => {
-    app.onBeforeHandle(async ({ set, request }) => {
+    app.onBeforeHandle({ as: 'global' }, async ({ set, request }) => {
       if (
         options.skip.length < 2 &&
         (await (options.skip as any)(request)) === false
