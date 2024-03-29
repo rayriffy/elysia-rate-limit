@@ -18,15 +18,28 @@ export const plugin = (userOptions?: Partial<Options>) => {
 
   return (app: Elysia) => {
     app.onBeforeHandle({ as: 'global' }, async ({ set, request }) => {
-      if (
-        options.skip.length < 2 &&
-        (await (options.skip as any)(request)) === false
-      ) {
-        const clientKey = await options.generator(request, app.server)
+      let clientKey: string | undefined
+
+      /**
+       * if skip option has 2 parameters, then we will generate clientKey ahead of time.
+       * this is made to skip generating key unnecessary if only check for request
+       * and saving some cpu consumption when actually skipped
+       */
+      if (options.skip.length >= 2)
+        clientKey = await options.generator(request, app.server)
+
+      // if decided to skip, then do nothing and let app continue
+      if (await options.skip(request, clientKey) === false) {
+        /**
+         * if skip option has less than 2 parameters, that's mean clientKey does not have a key yet
+         * then generate one
+         */
+        if (options.skip.length < 2)
+          clientKey = await options.generator(request, app.server)
 
         logger('generator', 'generated key is %s', clientKey)
 
-        const { count, nextReset } = await options.context.increment(clientKey)
+        const { count, nextReset } = await options.context.increment(clientKey!)
 
         const payload = {
           limit: options.max,
@@ -41,13 +54,6 @@ export const plugin = (userOptions?: Partial<Options>) => {
         set.headers['RateLimit-Reset'] = String(
           Math.max(0, Math.ceil((nextReset.getTime() - Date.now()) / 1000))
         )
-
-        if (
-          options.skip.length > 1 &&
-          (await options.skip(request, clientKey))
-        ) {
-          return
-        }
 
         // reject if limit were reached
         if (payload.current >= payload.limit + 1) {
