@@ -1,5 +1,11 @@
 # elysia-rate-limit
 
+## 3.0.1
+
+### Patch Changes
+
+- 17047d9: refactor code structure
+
 ## 3.0.0
 
 ### Major Changes
