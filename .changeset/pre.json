@@ -1,0 +1,10 @@
+{
+  "mode": "pre",
+  "tag": "beta",
+  "initialVersions": {
+    "elysia-rate-limit": "3.0.1"
+  },
+  "changesets": [
+    "friendly-garlics-whisper"
+  ]
+}
