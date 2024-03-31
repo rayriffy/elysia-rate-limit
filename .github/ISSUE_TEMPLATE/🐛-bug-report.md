@@ -8,7 +8,7 @@ assignees: ''
 ---
 
 **Before open the issue**
-- [ ] I tried remove `node_modules/`, `bun.lockb`, and do a clean install.
+- [ ] I tried remove `node_modules/`, `bun.lockb`, and do a clean installation.
 - [ ] I tried update Bun, and Elysia to latest version.
 
 **Describe the bug**
