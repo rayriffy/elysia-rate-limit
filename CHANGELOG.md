@@ -1,5 +1,11 @@
 # elysia-rate-limit
 
+## 3.1.0-beta.0
+
+### Minor Changes
+
+- 8619ac1: new default context strategy
+
 ## 3.0.1
 
 ### Patch Changes

@@ -1,52 +1,72 @@
+import { LRUCache } from 'lru-cache'
+
 import { getNextResetTime } from '../services/getNextResetTime'
 
 import type { Options } from '../@types/Options'
-import { Context } from '../@types/Context'
+import type { Context } from '../@types/Context'
+
+interface Item {
+  count: number
+  nextReset: Date
+}
 
 export class DefaultContext implements Context {
-  store!: {
-    [key: string]: number
+  private readonly maxSize: number
+  private store!: LRUCache<string, Item>
+  private duration!: number
+
+  public constructor (maxSize = 5000) {
+    this.maxSize = maxSize
   }
 
-  duration!: number
-  nextReset!: Date
-  intervalId?: Timer
-
-  init (options: Options) {
+  public init (options: Options) {
     this.duration = options.duration
-    this.store = {}
-    this.nextReset = getNextResetTime(options.duration)
-    this.intervalId = setInterval(() => this.reset(), options.duration)
+    this.store = new LRUCache<string, Item>({
+      max: this.maxSize,
+    })
   }
 
-  async increment(key: string) {
-    const totalCount = (this.store[key] ?? 0) + 1
-    this.store[key] = totalCount
+  public async increment(key: string) {
+    const now = new Date()
+    let item = this.store.get(key)
 
-    return {
-      count: totalCount,
-      nextReset: this.nextReset,
+    // if item is not found or expired, then issue a new one
+    if (item === undefined || item.nextReset < now)
+      item = {
+        count: 1,
+        nextReset: getNextResetTime(this.duration),
+      }
+    // otherwise, increment the count
+    else
+      item.count++
+
+    // update the store
+    this.store.set(key, item)
+
+    return item
+  }
+
+  public async decrement(key: string) {
+    let item = this.store.get(key)
+
+    // perform actions only if item is found
+    if (item !== undefined) {
+      // decrement the count by 1
+      item.count--
+
+      // update the store
+      this.store.set(key, item)
     }
   }
 
-  async decrement(key: string) {
-    const keyStore = this.store[key]
-
-    if (keyStore) this.store[key] = keyStore - 1
+  public async reset(key?: string) {
+    if (typeof key === 'string')
+      this.store.delete(key)
+    else
+      this.store.clear()
   }
 
-  async reset(key?: string) {
-    if (typeof key === 'string') delete this.store[key]
-    else {
-      this.store = {}
-      this.nextReset = getNextResetTime(this.duration)
-    }
-  }
-
-  kill() {
-    if (this.intervalId)
-      // this garantee to be number based on [Symbol.toPrimitive] specified in bun types
-      // @ts-ignore
-      clearInterval(this.intervalId)
+  public kill() {
+    this.store.clear()
   }
 }
