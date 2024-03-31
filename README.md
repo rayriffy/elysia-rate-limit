@@ -104,6 +104,20 @@ export class CustomContext implements Context {
 }
 ```
 
+By default, context implementation, caching will be an LRU cache with a maximum of 5,000 entries. If you prefer to use this cache implementation but with larger cache size, you can define a new context with preferred cache size as follows
+
+```ts
+import { DefaultContext } from 'elysia-rate-limit'
+
+new Elysia()
+  .use(
+    rateLimit({
+      // define max cache size to 10,000
+      context: new DefaultContext(10_000),
+    })
+  )
+```
+
 ### skip
 
 `(request: Request, key: string): boolean | Promise<boolean>`
