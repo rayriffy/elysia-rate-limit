@@ -1,6 +1,6 @@
 import { LRUCache } from 'lru-cache'
 
-import { getNextResetTime } from '../services/getNextResetTime'
+import { getNextResetTime } from './getNextResetTime'
 
 import type { Options } from '../@types/Options'
 import type { Context } from '../@types/Context'

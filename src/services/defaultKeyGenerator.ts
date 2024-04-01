@@ -1,6 +1,6 @@
 import type { Server } from 'bun'
 
-export const keyGenerator = (
+export const defaultKeyGenerator = (
   request: Request,
   server: Server
 ): string => {
