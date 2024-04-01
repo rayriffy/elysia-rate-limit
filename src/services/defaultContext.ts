@@ -1,7 +1,5 @@
 import { LRUCache } from 'lru-cache'
 
-import { getNextResetTime } from './getNextResetTime'
-
 import type { Options } from '../@types/Options'
 import type { Context } from '../@types/Context'
 
@@ -34,7 +32,7 @@ export class DefaultContext implements Context {
     if (item === undefined || item.nextReset < now)
       item = {
         count: 1,
-        nextReset: getNextResetTime(this.duration),
+        nextReset: new Date(now.getMilliseconds() + this.duration),
       }
     // otherwise, increment the count
     else
@@ -49,7 +47,7 @@ export class DefaultContext implements Context {
   public async decrement(key: string) {
     let item = this.store.get(key)
 
-    // perform actions only if item is found
+    // perform actions only if an item is found
     if (item !== undefined) {
       // decrement the count by 1
       item.count--
