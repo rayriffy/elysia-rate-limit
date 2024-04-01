@@ -2,9 +2,9 @@ import type { Server } from 'bun'
 
 export const keyGenerator = (
   request: Request,
-  server: Server | null
+  server: Server
 ): string => {
-  const clientAddress = server?.requestIP(request)?.address
+  const clientAddress = server.requestIP(request)?.address
 
   if (clientAddress === undefined) {
     console.log(
