@@ -1,5 +1,14 @@
 # elysia-rate-limit
 
+## 3.1.1
+
+### Patch Changes
+
+- ca7f124: `getNextResetTime` implementation are now moved into `defaultContext`
+- 28316db: excluding unintended files that being published to npm
+- 1bcda4f: `generator` function now accepts `server` option as non-nullable. the plugin also checks if elysia server is initialized first.
+- d5056ec: file structure changes to match directory convention
+
 ## 3.1.0
 
 ### Minor Changes
