@@ -68,7 +68,7 @@ export const plugin = (userOptions?: Partial<Options>) => {
       }
     })
 
-    app.onError(async ({ request }) => {
+    app.onError({ as: options.scoping }, async ({ request }) => {
       if (!options.countFailedRequest) {
         const clientKey = await options.generator(request, app.server)
         await options.context.decrement(clientKey)
