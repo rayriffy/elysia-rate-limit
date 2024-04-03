@@ -32,7 +32,7 @@ export class DefaultContext implements Context {
     if (item === undefined || item.nextReset < now)
       item = {
         count: 1,
-        nextReset: new Date(now.getMilliseconds() + this.duration),
+        nextReset: new Date(now.getTime() + this.duration),
       }
     // otherwise, increment the count
     else
