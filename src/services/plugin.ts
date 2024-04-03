@@ -24,17 +24,19 @@ export const plugin = (userOptions?: Partial<Options>) => {
         throw new Error('Elysia is not initialized yet. Please call .listen() first.')
 
       /**
-       * if a skip option has 2 parameters, then we will generate clientKey ahead of time.
+       * if a skip option has two parameters,
+       * then we will generate clientKey ahead of time.
        * this is made to skip generating key unnecessary if only check for request
        * and saving some cpu consumption when actually skipped
        */
       if (options.skip.length >= 2)
         clientKey = await options.generator(request, app.server)
 
-      // if decided to skip, then do nothing and let app continue
+      // if decided to skip, then do nothing and let the app continue
       if (await options.skip(request, clientKey) === false) {
         /**
-         * if a skip option has less than 2 parameters, that's mean clientKey does not have a key yet
+         * if a skip option has less than two parameters,
+         * that's mean clientKey does not have a key yet
          * then generate one
          */
         if (options.skip.length < 2)
@@ -73,7 +75,7 @@ export const plugin = (userOptions?: Partial<Options>) => {
       if (app.server === null)
         throw new Error('Elysia is not initialized yet. Please call .listen() first.')
 
-      if (options.countFailedRequest === false) {
+      if (!options.countFailedRequest) {
         const clientKey = await options.generator(request, app.server)
         await options.context.decrement(clientKey)
       }
