@@ -1,5 +1,11 @@
 # elysia-rate-limit
 
+## 3.1.3
+
+### Patch Changes
+
+- 7317819: nextReset time for default context always returns to year 1970. my bad
+
 ## 3.1.2
 
 ### Patch Changes
