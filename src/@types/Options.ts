@@ -16,6 +16,9 @@ export interface Options {
   // message response when rate-limit reached (Default: rate-limit reached)
   responseMessage: any
 
+  // scoping for rate limiting, set global by default to affect every request, but you can adjust to local to affect only within current instance
+  scoping: 'global' | 'local'
+
   // should the rate limit be counted when a request result is failed (Default: false)
   countFailedRequest: boolean
 

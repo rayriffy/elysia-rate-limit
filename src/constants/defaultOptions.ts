@@ -8,6 +8,7 @@ export const defaultOptions: Options = {
   max: 10,
   responseCode: 429,
   responseMessage: 'rate-limit reached',
+  scoping: 'global',
   countFailedRequest: false,
   generator: defaultKeyGenerator,
   context: new DefaultContext(),

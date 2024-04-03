@@ -17,7 +17,7 @@ export const plugin = (userOptions?: Partial<Options>) => {
   options.context.init(options)
 
   return (app: Elysia) => {
-    app.onBeforeHandle({ as: 'global' }, async ({ set, request }) => {
+    app.onBeforeHandle({ as: options.scoping }, async ({ set, request }) => {
       let clientKey: string | undefined
 
       /**
