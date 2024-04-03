@@ -1,5 +1,11 @@
 # elysia-rate-limit
 
+## 3.1.2
+
+### Patch Changes
+
+- dea390c: default generator throws detailed warning message with reason
+
 ## 3.1.1
 
 ### Patch Changes
