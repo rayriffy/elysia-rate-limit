@@ -12,7 +12,6 @@ nodemon.json
 example
 tests
 test
-CHANGELOG.md
 .eslintrc.js
 tsconfig.cjs.json
 tsconfig.esm.json
@@ -20,3 +19,4 @@ tsconfig.esm.json
 .changeset
 .github
 .idea
+docs

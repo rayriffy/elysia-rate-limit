@@ -12,7 +12,9 @@ If you're using Bun v1.0.3 or lower, `elysia-rate-limit` v2.0.0 or higher will n
 
 ## Compatibility
 
-As long as you're on latest version of Bun, and Elysia. Using latest version of `elysia-rate-limit` would works just fine. However, please refer to following table to determine which version to use.
+As long as you're on the latest version of Bun, and Elysia.
+Using the latest version of `elysia-rate-limit` would works just fine.
+However, please refer to the following table to determine which version to use.
 
 | Plugin version | Requirements |
 | - | - |
@@ -39,7 +41,8 @@ new Elysia().use(rateLimit()).listen(3000)
 
 Default: `60000`
 
-Duration for requests to be remembered in **miliseconds**. Also used in the `Retry-After` header when the limit is reached.
+Duration for requests to be remembered in **milliseconds**.
+Also used in the `Retry-After` header when the limit is reached.
 
 ### max
 
@@ -55,7 +58,10 @@ Maximum of request to be allowed during 1 `duration` timeframe.
 
 Default: `429`
 
-HTTP reponse code to be sent when rate limit was reached. By default, it will return `429 Too Many Requests` refering to [RFC 6585 specification](https://www.rfc-editor.org/rfc/rfc6585#section-4)
+HTTP response code to be sent when the rate limit was reached.
+By default,
+it will return `429 Too Many Requests`
+referring to [RFC 6585 specification](https://www.rfc-editor.org/rfc/rfc6585#section-4)
 
 ### responseMessage
 
@@ -63,7 +69,20 @@ HTTP reponse code to be sent when rate limit was reached. By default, it will re
 
 Default: `rate-limit reached`
 
-Message to be sent when rate limit was reached
+Message to be sent when the rate limit was reached
+
+### scoping
+
+`'global' | 'local'`
+
+Default: `'global'`
+
+Sometimes you may want
+to only apply rate limit plugin to curtain Elysia instance.
+This option will allow you
+to choose scope `local` apply to only current instance and descendant only.
+But by default,
+rate limit plugin will apply to all instances that apply the plugin.
 
 ### generator
 
@@ -88,7 +107,11 @@ const cloudflareGenerator = (req, server) =>
 
 Default: `false`
 
-Should this plugin count rate-limit to user when request failed? By default, this plugin will refund request count to client when `onError` lifecycle called. ([Learn more in Lifecycle](https://elysiajs.com/concept/middleware.html#life-cycle))
+Should this plugin count rate-limit to user when request failed?
+By default,
+this plugin will refund request count to a client
+when `onError` lifecycle called.
+([Learn more in Lifecycle](https://elysiajs.com/concept/middleware.html#life-cycle))
 
 ### context
 
@@ -124,4 +147,8 @@ new Elysia()
 
 Default: `(): false`
 
-A custom function to determine that should this request be counted into rate-limit or not based on information given by `Request` object (i.e. Skip counting rate-limit on some route) and the key of the given request, by default this will always return `false` which means counted everything.
+A custom function
+to determine that should this request be counted into rate-limit
+or not based on information given by `Request` object
+(i.e., Skip counting rate-limit on some route) and the key of the given request,
+by default, this will always return `false` which means counted everything.
