@@ -4,26 +4,15 @@ export const defaultKeyGenerator = (
   request: Request,
   server: Server
 ): string => {
-  const clientAddress = server.requestIP(request)?.address
+  if (request === undefined) return (warn('request is undefined'), '')
 
-  if (clientAddress === undefined) {
-    let reason: string
+  const socket = server.requestIP(request)
+  if (!socket) return (warn('.requestIP() returns null'), '')
 
-    if (request === undefined)
-      reason = 'request is undefined'
-    else if (server.requestIP(request) === null)
-      reason = '.requestIP() returns null'
-    else if (server.requestIP(request)?.address === undefined)
-      reason = '.requestIP()?.address returns undefined'
-    else
-      reason = 'unknown'
+  const clientAddress = socket.address
+  if (!clientAddress) return (warn('.requestIP()?.address returns undefined'), '')
 
-    console.warn(
-      `[elysia-rate-limit] failed to determine client address (reason: ${reason})`
-    )
-
-    return ''
-  } else {
-    return clientAddress
-  }
+  return clientAddress
 }
+
+const warn = (reason: string) => console.warn(`[elysia-rate-limit] failed to determine client address (reason: ${reason})`)
