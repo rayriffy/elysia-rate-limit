@@ -2,15 +2,17 @@ import type { Server } from 'bun'
 
 export const defaultKeyGenerator = (
   request: Request,
-  server: Server
+  server: Server | null
 ): string => {
-  const clientAddress = server.requestIP(request)?.address
+  const clientAddress = server?.requestIP(request)?.address
 
   if (clientAddress === undefined) {
     let reason: string
 
     if (request === undefined)
       reason = 'request is undefined'
+    else if (server === null)
+      reason = 'server is null'
     else if (server.requestIP(request) === null)
       reason = '.requestIP() returns null'
     else if (server.requestIP(request)?.address === undefined)

@@ -20,9 +20,6 @@ export const plugin = (userOptions?: Partial<Options>) => {
     app.onBeforeHandle({ as: 'global' }, async ({ set, request }) => {
       let clientKey: string | undefined
 
-      if (app.server === null)
-        throw new Error('Elysia is not initialized yet. Please call .listen() first.')
-
       /**
        * if a skip option has two parameters,
        * then we will generate clientKey ahead of time.
@@ -72,9 +69,6 @@ export const plugin = (userOptions?: Partial<Options>) => {
     })
 
     app.onError(async ({ request }) => {
-      if (app.server === null)
-        throw new Error('Elysia is not initialized yet. Please call .listen() first.')
-
       if (!options.countFailedRequest) {
         const clientKey = await options.generator(request, app.server)
         await options.context.decrement(clientKey)
