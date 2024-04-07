@@ -1,5 +1,11 @@
 # elysia-rate-limit
 
+## 3.1.4
+
+### Patch Changes
+
+- 9ffb155: plugin no longer server to be initialized
+
 ## 3.1.3
 
 ### Patch Changes
