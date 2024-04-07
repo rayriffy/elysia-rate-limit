@@ -1,5 +1,11 @@
 # elysia-rate-limit
 
+## 3.2.0-beta.1
+
+### Minor Changes
+
+- 37dc931: allowing user to change plugin hooks scoping behavior
+
 ## 3.1.4
 
 ### Patch Changes
