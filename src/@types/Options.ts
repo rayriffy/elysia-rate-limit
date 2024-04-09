@@ -23,7 +23,7 @@ export interface Options {
   countFailedRequest: boolean
 
   // key generator function to categorize client for rate-limiting
-  generator(request: Request, server: Server | null): MaybePromise<string>
+  generator(request: Request, server: Server | null, derived: any): MaybePromise<string>
 
   // context for storing requests count
   context: Context
