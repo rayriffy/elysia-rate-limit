@@ -1,5 +1,12 @@
 # elysia-rate-limit
 
+## 3.2.0
+
+### Minor Changes
+
+- ebe2c77: generators function now passed derive values as a thrid argruments
+- 55f0e22: allowing user to change plugin hooks scoping behavior
+
 ## 3.2.0-beta.1
 
 ### Minor Changes
