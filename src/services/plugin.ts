@@ -17,7 +17,7 @@ export const plugin = (userOptions?: Partial<Options>) => {
   options.context.init(options)
 
   return (app: Elysia) => {
-    // somehow qi is being sent from elysia, but there's no type declaration for it
+    // @ts-expect-error somehow qi is being sent from elysia, but there's no type declaration for it
     app.onBeforeHandle({ as: options.scoping }, async ({ set, request, query, path, store, cookie, error, body, params, headers, qi, ...rest }) => {
       let clientKey: string | undefined
 
@@ -69,9 +69,10 @@ export const plugin = (userOptions?: Partial<Options>) => {
       }
     })
 
-    app.onError({ as: options.scoping }, async ({ request }) => {
+    // @ts-expect-error somehow qi is being sent from elysia, but there's no type declaration for it
+    app.onError({ as: options.scoping }, async ({ set, request, query, path, store, cookie, error, body, params, headers, qi, ...rest }) => {
       if (!options.countFailedRequest) {
-        const clientKey = await options.generator(request, app.server)
+        const clientKey = await options.generator(request, app.server, rest)
         await options.context.decrement(clientKey)
       }
     })
