@@ -1,7 +1,5 @@
-import type { MaybePromise } from 'elysia'
-
 import type { Context } from './Context'
-import type { Server } from 'bun'
+import { Generator } from './Generator'
 
 export interface Options {
   // The duration for plugin to remember the requests (Default: 60000ms)
@@ -23,7 +21,7 @@ export interface Options {
   countFailedRequest: boolean
 
   // key generator function to categorize client for rate-limiting
-  generator(request: Request, server: Server | null, derived: any): MaybePromise<string>
+  generator: Generator
 
   // context for storing requests count
   context: Context
