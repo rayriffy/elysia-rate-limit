@@ -1,0 +1,22 @@
+name: PR Checks
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+      - name: bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+      - name: install
+        run: bun i
+      - name: build
+        run: bun run build
