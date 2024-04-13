@@ -6,6 +6,12 @@
 
 - 37dc931: allowing user to change plugin hooks scoping behavior
 
+## 3.2.0-beta.0
+
+### Minor Changes
+
+- generators function now passed derive values as a thrid argruments
+
 ## 3.1.4
 
 ### Patch Changes

@@ -1,10 +1,10 @@
 {
-  "mode": "pre",
+  "mode": "exit",
   "tag": "beta",
   "initialVersions": {
-    "elysia-rate-limit": "3.1.1"
+    "elysia-rate-limit": "3.1.4"
   },
   "changesets": [
-    "twelve-dots-build"
+    "silent-trains-sing"
   ]
 }

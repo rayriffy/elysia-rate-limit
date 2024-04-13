@@ -16,11 +16,11 @@ As long as you're on the latest version of Bun, and Elysia.
 Using the latest version of `elysia-rate-limit` would works just fine.
 However, please refer to the following table to determine which version to use.
 
-| Plugin version | Requirements |
-| - | - |
-| 3.0.0+ | Bun > 1.0.3, Elysia >= 1.0.0 |
-| 2.0.0 - 2.2.0 | Bun > 1.0.3, Elysia < 1.0.0 |
-| 1.0.2 - 1.3.0 | Bun <= 1.0.3, Elysia < 1.0.0 |
+| Plugin version | Requirements                 |
+|----------------|------------------------------|
+| 3.0.0+         | Bun > 1.0.3, Elysia >= 1.0.0 |
+| 2.0.0 - 2.2.0  | Bun > 1.0.3, Elysia < 1.0.0  |
+| 1.0.2 - 1.3.0  | Bun <= 1.0.3, Elysia < 1.0.0 |
 
 ## Usage
 
@@ -86,7 +86,7 @@ rate limit plugin will apply to all instances that apply the plugin.
 
 ### generator
 
-`(request: Request, server: Server): string | Promise<string>`
+`<T extends object>(equest: Request, server: Server | null, derived: T) => MaybePromise<string>`
 
 Custom key generator to categorize client requests, return as a string. By default, this plugin will categorize client by their IP address via [`server.requestIP()` function](https://github.com/oven-sh/bun/pull/6165).
 
@@ -99,6 +99,22 @@ const cloudflareGenerator = (req, server) =>
   // if not found, fallback to default generator
   server?.requestIP(req)?.address ??
   ''
+```
+
+There's a third argument
+where you can use derive values from external plugin within key generator as well.
+Only downsize is you have to definitely those types be yourself,
+please be sure to test those values before actually defining types manually.
+
+```ts
+import { ip } from 'elysia-ip'
+
+import type { SocketAddress } from 'bun'
+import type { Generator } from 'elysia-rate-limit'
+
+const ipGenerator: Generator<{ ip: SocketAddress }> = (_req, _serv, { ip }) => {
+  return ip
+} 
 ```
 
 ### countFailedRequest

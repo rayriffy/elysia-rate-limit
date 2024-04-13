@@ -1,9 +1,6 @@
-import type { Server } from 'bun'
+import type { Options } from '../@types/Options'
 
-export const defaultKeyGenerator = (
-  request: Request,
-  server: Server | null
-): string => {
+export const defaultKeyGenerator: Options['generator'] = (request, server): string => {
   const clientAddress = server?.requestIP(request)?.address
 
   if (clientAddress === undefined) {
