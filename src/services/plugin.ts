@@ -17,7 +17,7 @@ export const plugin = (userOptions?: Partial<Options>) => {
   options.context.init(options)
 
   return (app: Elysia) => {
-    app.onBeforeHandle({ as: 'global' }, async ({ set, request }) => {
+    app.onBeforeHandle({ as: options.scoping }, async ({ set, request }) => {
       let clientKey: string | undefined
 
       /**
@@ -68,7 +68,7 @@ export const plugin = (userOptions?: Partial<Options>) => {
       }
     })
 
-    app.onError(async ({ request }) => {
+    app.onError({ as: options.scoping }, async ({ request }) => {
       if (!options.countFailedRequest) {
         const clientKey = await options.generator(request, app.server)
         await options.context.decrement(clientKey)

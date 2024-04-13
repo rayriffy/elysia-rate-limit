@@ -1,0 +1,10 @@
+{
+  "mode": "pre",
+  "tag": "beta",
+  "initialVersions": {
+    "elysia-rate-limit": "3.1.1"
+  },
+  "changesets": [
+    "twelve-dots-build"
+  ]
+}
