@@ -70,7 +70,7 @@ export const plugin = (userOptions?: Partial<Options>) => {
     })
 
     // @ts-expect-error somehow qi is being sent from elysia, but there's no type declaration for it
-    app.onError({ as: options.scoping }, async ({ set, request, query, path, store, cookie, error, body, params, headers, qi, ...rest }) => {
+    app.onError({ as: options.scoping }, async ({ set, request, query, path, store, cookie, error, body, params, headers, qi, code, ...rest }) => {
       if (!options.countFailedRequest) {
         const clientKey = await options.generator(request, app.server, rest)
         await options.context.decrement(clientKey)
