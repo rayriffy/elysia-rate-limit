@@ -1,5 +1,11 @@
 # elysia-rate-limit
 
+## 3.2.1
+
+### Patch Changes
+
+- 2c5d035: fix generic value of generator types
+
 ## 3.2.0
 
 ### Minor Changes
