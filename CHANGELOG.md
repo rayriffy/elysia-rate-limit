@@ -1,5 +1,13 @@
 # elysia-rate-limit
 
+## 3.2.2
+
+### Patch Changes
+
+- d4d7a62: added debug logs
+- 5e83844: fix context is being shared across multiple local scope
+- 5e83844: add example for multiple instance scoping
+
 ## 3.2.1
 
 ### Patch Changes
