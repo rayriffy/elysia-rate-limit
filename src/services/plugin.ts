@@ -1,14 +1,17 @@
 import type Elysia from 'elysia'
 
 import { defaultOptions } from '../constants/defaultOptions'
+import { DefaultContext } from './defaultContext'
+
+import { logger } from './logger'
 
 import type { Options } from '../@types/Options'
-import { logger } from './logger'
 
 export const plugin = (userOptions?: Partial<Options>) => {
   const options: Options = {
     ...defaultOptions,
     ...userOptions,
+    context: userOptions?.context ?? new DefaultContext(),
   }
 
   options.context.init(options)

@@ -1,9 +1,8 @@
 import { defaultKeyGenerator } from '../services/defaultKeyGenerator'
-import { DefaultContext } from '../services/defaultContext'
 
 import type { Options } from '../@types/Options'
 
-export const defaultOptions: Options = {
+export const defaultOptions: Omit<Options, 'context'> = {
   duration: 60000,
   max: 10,
   responseCode: 429,
@@ -11,6 +10,5 @@ export const defaultOptions: Options = {
   scoping: 'global',
   countFailedRequest: false,
   generator: defaultKeyGenerator,
-  context: new DefaultContext(),
   skip: () => false,
 }
