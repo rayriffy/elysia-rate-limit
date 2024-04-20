@@ -2,6 +2,7 @@ import { LRUCache } from 'lru-cache'
 
 import type { Options } from '../@types/Options'
 import type { Context } from '../@types/Context'
+import { logger } from './logger'
 
 interface Item {
   count: number
@@ -9,6 +10,7 @@ interface Item {
 }
 
 export class DefaultContext implements Context {
+  private readonly id: string = (Math.random() + 1).toString(36).substring(7)
   private readonly maxSize: number
   private store!: LRUCache<string, Item>
   private duration!: number
@@ -18,6 +20,8 @@ export class DefaultContext implements Context {
   }
 
   public init (options: Options) {
+    logger(`context:${this.id}`, 'initialized with maxSize: %d, and expire duration of %d seconds', this.maxSize, options.duration / 1000)
+
     this.duration = options.duration
     this.store = new LRUCache<string, Item>({
       max: this.maxSize,
@@ -29,14 +33,25 @@ export class DefaultContext implements Context {
     let item = this.store.get(key)
 
     // if item is not found or expired, then issue a new one
-    if (item === undefined || item.nextReset < now)
+    if (item === undefined || item.nextReset < now) {
+      logger(
+        `context:${this.id}`,
+        'created new item for key: %s (reason: %s)',
+        key,
+        item === undefined ? 'not found' : 'expired'
+      )
+
       item = {
         count: 1,
         nextReset: new Date(now.getTime() + this.duration),
       }
+    }
     // otherwise, increment the count
-    else
+    else {
+      logger(`context:${this.id}`, 'incremented count for key: %s', key)
+
       item.count++
+    }
 
     // update the store
     this.store.set(key, item)
@@ -49,6 +64,8 @@ export class DefaultContext implements Context {
 
     // perform actions only if an item is found
     if (item !== undefined) {
+      logger(`context:${this.id}`, 'decremented count for key: %s', key)
+
       // decrement the count by 1
       item.count--
 
@@ -58,6 +75,8 @@ export class DefaultContext implements Context {
   }
 
   public async reset(key?: string) {
+    logger(`context:${this.id}`, 'resetting target %s', key ?? 'all')
+
     if (typeof key === 'string')
       this.store.delete(key)
     else
@@ -65,6 +84,8 @@ export class DefaultContext implements Context {
   }
 
   public kill() {
+    logger(`context:${this.id}`, 'clearing the store')
+
     this.store.clear()
   }
 }

@@ -1,12 +1,9 @@
 import type Elysia from 'elysia'
-import debug from 'debug'
 
 import { defaultOptions } from '../constants/defaultOptions'
 
 import type { Options } from '../@types/Options'
-
-const logger = (unit: string, formatter: any, ...params: any[]) =>
-  debug('elysia-rate-limit:' + unit)(formatter, ...params)
+import { logger } from './logger'
 
 export const plugin = (userOptions?: Partial<Options>) => {
   const options: Options = {
@@ -40,8 +37,6 @@ export const plugin = (userOptions?: Partial<Options>) => {
         if (options.skip.length < 2)
           clientKey = await options.generator(request, app.server, rest)
 
-        logger('generator', 'generated key is %s', clientKey)
-
         const { count, nextReset } = await options.context.increment(clientKey!)
 
         const payload = {
@@ -52,20 +47,23 @@ export const plugin = (userOptions?: Partial<Options>) => {
         }
 
         // set standard headers
+        const reset = Math.max(0, Math.ceil((nextReset.getTime() - Date.now()) / 1000))
         set.headers['RateLimit-Limit'] = String(options.max)
         set.headers['RateLimit-Remaining'] = String(payload.remaining)
-        set.headers['RateLimit-Reset'] = String(
-          Math.max(0, Math.ceil((nextReset.getTime() - Date.now()) / 1000))
-        )
+        set.headers['RateLimit-Reset'] = String(reset)
 
         // reject if limit were reached
         if (payload.current >= payload.limit + 1) {
+          logger('plugin', 'rate limit exceeded for clientKey: %s (resetting in %d seconds)', clientKey, reset)
+
           set.headers['Retry-After'] = String(
             Math.ceil(options.duration / 1000)
           )
           set.status = options.responseCode
           return options.responseMessage
         }
+
+        logger('plugin', 'clientKey %s passed through with %d/%d request used (resetting in %d seconds)', clientKey, options.max - payload.remaining, options.max, reset)
       }
     })
 
@@ -73,11 +71,14 @@ export const plugin = (userOptions?: Partial<Options>) => {
     app.onError({ as: options.scoping }, async ({ set, request, query, path, store, cookie, error, body, params, headers, qi, code, ...rest }) => {
       if (!options.countFailedRequest) {
         const clientKey = await options.generator(request, app.server, rest)
+
+        logger('plugin', 'request failed for clientKey: %s, refunding', clientKey)
         await options.context.decrement(clientKey)
       }
     })
 
     app.onStop(async () => {
+      logger('plugin', 'kill signal received')
       await options.context.kill()
     })
 

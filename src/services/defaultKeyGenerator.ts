@@ -1,7 +1,11 @@
+import { logger } from './logger'
+
 import type { Options } from '../@types/Options'
 
 export const defaultKeyGenerator: Options['generator'] = (request, server): string => {
   const clientAddress = server?.requestIP(request)?.address
+
+  logger('generator', 'clientAddress: %s', clientAddress)
 
   if (clientAddress === undefined) {
     let reason: string
