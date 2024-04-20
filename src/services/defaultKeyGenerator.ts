@@ -1,8 +1,8 @@
 import { logger } from './logger'
 
-import type { Options } from '../@types/Options'
+import type { Generator } from '../@types/Generator'
 
-export const defaultKeyGenerator: Options['generator'] = (request, server): string => {
+export const defaultKeyGenerator: Generator = (request, server): string => {
   const clientAddress = server?.requestIP(request)?.address
 
   logger('generator', 'clientAddress: %s', clientAddress)

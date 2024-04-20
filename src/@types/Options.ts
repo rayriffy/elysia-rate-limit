@@ -21,7 +21,7 @@ export interface Options {
   countFailedRequest: boolean
 
   // key generator function to categorize client for rate-limiting
-  generator: Generator
+  generator: Generator<any>
 
   // context for storing requests count
   context: Context

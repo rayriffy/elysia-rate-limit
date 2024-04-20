@@ -24,7 +24,7 @@ However, please refer to the following table to determine which version to use.
 
 ## Usage
 
-Check out full sample at [`example`](example/index.ts)
+Check out full sample at [`example`](example/basic.ts)
 
 ```ts
 import { Elysia } from 'elysia'
