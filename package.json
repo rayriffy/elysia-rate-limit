@@ -20,7 +20,8 @@
   },
   "types": "./dist/index.d.ts",
   "scripts": {
-    "dev": "bun run --hot example/basic.ts",
+    "dev": "DEBUG=* bun run --hot example/basic.ts",
+    "dev:multi": "DEBUG=* bun run --hot example/multiInstance.ts",
     "build": "rm -rf dist && tsc --project tsconfig.esm.json"
   },
   "keywords": [
