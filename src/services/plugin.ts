@@ -16,11 +16,12 @@ export const plugin = (userOptions?: Partial<Options>) => {
 
   options.context.init(options)
 
-  return (app: Elysia) => {
+  return async (app: Elysia) => {
+    const server = await options.getServer() || app.server
     // @ts-expect-error somehow qi is being sent from elysia, but there's no type declaration for it
     app.onBeforeHandle({ as: options.scoping }, async ({ set, request, query, path, store, cookie, error, body, params, headers, qi, ...rest }) => {
       let clientKey: string | undefined
-
+ 
       /**
        * if a skip option has two parameters,
        * then we will generate clientKey ahead of time.
@@ -28,7 +29,7 @@ export const plugin = (userOptions?: Partial<Options>) => {
        * and saving some cpu consumption when actually skipped
        */
       if (options.skip.length >= 2)
-        clientKey = await options.generator(request, app.server, rest)
+        clientKey = await options.generator(request, server, rest)
 
       // if decided to skip, then do nothing and let the app continue
       if (await options.skip(request, clientKey) === false) {
@@ -38,7 +39,7 @@ export const plugin = (userOptions?: Partial<Options>) => {
          * then generate one
          */
         if (options.skip.length < 2)
-          clientKey = await options.generator(request, app.server, rest)
+          clientKey = await options.generator(request, server, rest)
 
         const { count, nextReset } = await options.context.increment(clientKey!)
 
@@ -73,7 +74,7 @@ export const plugin = (userOptions?: Partial<Options>) => {
     // @ts-expect-error somehow qi is being sent from elysia, but there's no type declaration for it
     app.onError({ as: options.scoping }, async ({ set, request, query, path, store, cookie, error, body, params, headers, qi, code, ...rest }) => {
       if (!options.countFailedRequest) {
-        const clientKey = await options.generator(request, app.server, rest)
+        const clientKey = await options.generator(request, server, rest)
 
         logger('plugin', 'request failed for clientKey: %s, refunding', clientKey)
         await options.context.decrement(clientKey)

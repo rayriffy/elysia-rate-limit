@@ -1,5 +1,7 @@
 import type { Context } from './Context'
-import { Generator } from './Generator'
+import type { Generator } from './Generator'
+import type { GetServer } from './GetServer'
+import type { LifeCycleType } from 'elysia/dist/types'
 
 export interface Options {
   // The duration for plugin to remember the requests (Default: 60000ms)
@@ -15,7 +17,7 @@ export interface Options {
   responseMessage: any
 
   // scoping for rate limiting, set global by default to affect every request, but you can adjust to local to affect only within current instance
-  scoping: 'global' | 'local'
+  scoping: LifeCycleType
 
   // should the rate limit be counted when a request result is failed (Default: false)
   countFailedRequest: boolean
@@ -30,4 +32,7 @@ export interface Options {
   // not counting rate limit for some requests
   // (Default: always return false)
   skip: (req: Request, key?: string) => boolean | Promise<boolean>
+
+  // get server instance function
+  getServer: GetServer
 }
