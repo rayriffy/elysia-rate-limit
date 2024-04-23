@@ -175,3 +175,9 @@ dist
 .svelte-kit
 
 # End of https://www.toptal.com/developers/gitignore/api/node,macos
+
+#lock file
+package-lock.json
+pnpm-lock.yaml
+yaml.lock
+bun.lockb
