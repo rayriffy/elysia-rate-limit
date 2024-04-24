@@ -11,4 +11,5 @@ export const defaultOptions: Omit<Options, 'context'> = {
   countFailedRequest: false,
   generator: defaultKeyGenerator,
   skip: () => false,
+  getServer: app => app.server,
 }

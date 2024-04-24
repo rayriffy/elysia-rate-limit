@@ -1,4 +1,4 @@
 import { Server } from 'bun'
-import { MaybePromise } from 'elysia'
+import { Elysia, MaybePromise } from 'elysia'
 
-export type GetServer = () => MaybePromise<Server | null>
+export type GetServer = (app: Elysia) => MaybePromise<Server | null>
