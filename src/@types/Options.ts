@@ -35,4 +35,7 @@ export interface Options {
 
   // get server instance function
   getServer: GetServer
+
+  // throw this object when rate-limit reached
+  throwOnError?: Error
 }

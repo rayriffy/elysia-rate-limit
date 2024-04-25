@@ -64,6 +64,10 @@ export const plugin = (userOptions?: Partial<Options>) => {
             Math.ceil(options.duration / 1000)
           )
           set.status = options.responseCode
+          
+          if (options.throwOnError) {
+            throw options.throwOnError
+          }
           return options.responseMessage
         }
 
