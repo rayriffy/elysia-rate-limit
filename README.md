@@ -6,7 +6,6 @@ Lightweight rate limiter plugin for [Elysia.js](https://elysiajs.com/)
 ![NPM Downloads](https://img.shields.io/npm/dw/elysia-rate-limit)
 ![NPM License](https://img.shields.io/npm/l/elysia-rate-limit)
 
-
 ## Install
 
 ```
@@ -22,7 +21,7 @@ Using the latest version of `elysia-rate-limit` would works just fine.
 However, please refer to the following table to determine which version to use.
 
 | Plugin version | Requirements                 |
-|----------------|------------------------------|
+| -------------- | ---------------------------- |
 | 3.0.0+         | Bun > 1.0.3, Elysia >= 1.0.0 |
 | 2.0.0 - 2.2.0  | Bun > 1.0.3, Elysia < 1.0.0  |
 | 1.0.2 - 1.3.0  | Bun <= 1.0.3, Elysia < 1.0.0 |
@@ -78,7 +77,7 @@ Message to be sent when the rate limit was reached
 
 ### scoping
 
-`'global' | 'local'`
+`LifeCycleType`
 
 Default: `'global'`
 
@@ -119,7 +118,7 @@ import type { Generator } from 'elysia-rate-limit'
 
 const ipGenerator: Generator<{ ip: SocketAddress }> = (_req, _serv, { ip }) => {
   return ip
-} 
+}
 ```
 
 ### countFailedRequest
@@ -153,13 +152,12 @@ By default, context implementation, caching will be an LRU cache with a maximum 
 ```ts
 import { DefaultContext } from 'elysia-rate-limit'
 
-new Elysia()
-  .use(
-    rateLimit({
-      // define max cache size to 10,000
-      context: new DefaultContext(10_000),
-    })
-  )
+new Elysia().use(
+  rateLimit({
+    // define max cache size to 10,000
+    context: new DefaultContext(10_000),
+  })
+)
 ```
 
 ### skip
@@ -173,3 +171,73 @@ to determine that should this request be counted into rate-limit
 or not based on information given by `Request` object
 (i.e., Skip counting rate-limit on some route) and the key of the given request,
 by default, this will always return `false` which means counted everything.
+
+### getServer
+
+`(app: Elysia) => MaybePromise<Elysia | NeedRequestIP>`
+
+Default: `(app) => app`
+
+```ts
+import { Elysia } from 'elysia'
+import { rateLimit } from 'elysia-rate-limit'
+import bearer from '@elysiajs/bearer'
+
+class appInstance {
+  static server: Server | null
+}
+
+const setup = new Elysia({
+  name: 'setup',
+}).use(bearer())
+
+const userList = new Elysia({
+  name: 'userListRoute',
+})
+  .use(setup)
+  .use(
+    rateLimit({
+      getServer: _ => appInstance,
+      scoping: 'scoped',
+      max: 10,
+      duration: 100,
+    })
+  )
+  .get('/user', ({ bearer }) => {
+    return user.list()
+  })
+
+const userAdd = new Elysia({
+  name: 'userAddRoute',
+})
+  .use(setup)
+  .use(
+    rateLimit({
+      getServer: _ => appInstance,
+      scoping: 'scoped',
+      max: 2,
+      duration: 1000,
+    })
+  )
+  .post('/user', ({ body }) => {
+    return user.add(body)
+  })
+
+const app = new Elysia({
+  name: 'app',
+})
+  .use(helmet())
+
+  .use(userAdd)
+  .use(userList)
+
+  .listen({}, ({ development, hostname, port }) => {
+    console.log(
+      `🦊 Elysia is running at ${hostname}:${port} ${
+        development ? '🚧 in development mode!🚧' : ''
+      }`
+    )
+  })
+
+appInstance.server = app.server
+```
