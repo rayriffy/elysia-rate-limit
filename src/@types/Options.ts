@@ -1,6 +1,7 @@
+import type { Server } from 'bun'
+
 import type { Context } from './Context'
 import type { Generator } from './Generator'
-import type { GetServer } from './GetServer'
 
 export interface Options {
   // The duration for plugin to remember the requests (Default: 60000ms)
@@ -12,7 +13,8 @@ export interface Options {
   // Object to response when rate-limit reached
   errorResponse: string | Response | Error
 
-  // scoping for rate limiting, set global by default to affect every request, but you can adjust to local to affect only within current instance
+  // scoping for rate limiting, set global by default to affect every request,
+  // but you can adjust to local to affect only within current instance
   scoping: 'global' | 'local' | 'scoped'
 
   // should the rate limit be counted when a request result is failed (Default: false)
@@ -29,6 +31,9 @@ export interface Options {
   // (Default: always return false)
   skip: (req: Request, key?: string) => boolean | Promise<boolean>
 
-  // get server instance function
-  getServer: GetServer
+  // an explicit way to inject server instance to generator function
+  // uses this as last resort only
+  // since this function will slightly reduce server performance
+  // (Default: not defined)
+  injectServer?: () => Server
 }

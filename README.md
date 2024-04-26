@@ -21,7 +21,7 @@ Using the latest version of `elysia-rate-limit` would works just fine.
 However, please refer to the following table to determine which version to use.
 
 | Plugin version | Requirements                 |
-| -------------- | ---------------------------- |
+|----------------|------------------------------|
 | 3.0.0+         | Bun > 1.0.3, Elysia >= 1.0.0 |
 | 2.0.0 - 2.2.0  | Bun > 1.0.3, Elysia < 1.0.0  |
 | 1.0.2 - 1.3.0  | Bun <= 1.0.3, Elysia < 1.0.0 |
@@ -224,64 +224,17 @@ or not based on information given by `Request` object
 (i.e., Skip counting rate-limit on some route) and the key of the given request,
 by default, this will always return `false` which means counted everything.
 
-### getServer
+### injectServer
 
-`(app: Elysia) => MaybePromise<Elysia | NeedRequestIP>`
+`() => Server`
 
-Default: `(app) => app`
+Default: `undefined`
 
-A custom function
-to get access server instance
+A function to inject server instance to the plugin,
+this is useful
+when you want to use default key generator in detached Elysia instances.
+You can check out the example [here](./example/muliInstanceInjected.ts).
 
-Use with `rateLimitDefaultOptions` as a global configuration.
-
-```ts
-import { Elysia } from 'elysia'
-import { rateLimit, rateLimitDefaultOptions } from 'elysia-rate-limit'
-import bearer from '@elysiajs/bearer'
-
-class appInstance {
-  static server: Server | null
-}
-
-rateLimitDefaultOptions.getServer = _ => appInstance
-
-const setup = new Elysia({name: 'setup'}).use(bearer())
-
-const userList = new Elysia({name: 'userListRoute'}).use(setup)
-  .use(
-    rateLimit({
-      scoping: 'scoped',
-      max: 10,
-      duration: 100,
-    })
-  )
-  .get('/user', ({ bearer }) => user.info(bearer))
-
-const userAdd = new Elysia({name: 'userAddRoute'}).use(setup)
-  .use(
-    rateLimit({
-      scoping: 'scoped',
-      max: 2,
-      duration: 1000,
-    })
-  )
-  .post('/user', ({ body }) => user.add(body))
-
-const app = new Elysia({name: 'app'})
-  .use(helmet())
-
-  .use(userAdd).use(userList)
-
-  .listen({port: 8081}
-    ({ development, hostname, port }) => {
-      console.log(
-        `🦊 Elysia is running at ${hostname}:${port} ${
-          development ? '🚧 in development mode!🚧' : ''
-        }`
-      )
-    }
-  )
-
-appInstance.server = app.server
-```
+Please use this function as a last resort,
+as defining this option will make plugin to make an extra function call,
+which may affect performance.

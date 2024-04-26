@@ -16,8 +16,10 @@ export const plugin = (userOptions?: Partial<Options>) => {
 
   options.context.init(options)
 
-  return async (app: Elysia) => {
-    const serverApp = await options.getServer(app)
+  // NOTE:
+  // do not make plugin to return async
+  // otherwise request will be triggered twice
+  return (app: Elysia) => {
     // @ts-expect-error somehow qi is being sent from elysia, but there's no type declaration for it
     app.onBeforeHandle({ as: options.scoping }, async ({ set, request, query, path, store, cookie, error, body, params, headers, qi, ...rest }) => {
       let clientKey: string | undefined
@@ -29,7 +31,7 @@ export const plugin = (userOptions?: Partial<Options>) => {
        * and saving some cpu consumption when actually skipped
        */
       if (options.skip.length >= 2)
-        clientKey = await options.generator(request, serverApp.server, rest)
+        clientKey = await options.generator(request, options.injectServer?.() ?? app.server, rest)
 
       // if decided to skip, then do nothing and let the app continue
       if (await options.skip(request, clientKey) === false) {
@@ -39,7 +41,7 @@ export const plugin = (userOptions?: Partial<Options>) => {
          * then generate one
          */
         if (options.skip.length < 2)
-          clientKey = await options.generator(request, serverApp.server, rest)
+          clientKey = await options.generator(request, options.injectServer?.() ?? app.server, rest)
 
         const { count, nextReset } = await options.context.increment(clientKey!)
 
@@ -65,8 +67,6 @@ export const plugin = (userOptions?: Partial<Options>) => {
 
           builtHeaders['Retry-After'] = String(Math.ceil(options.duration / 1000))
 
-          console.log(options.errorResponse instanceof Response)
-
           if (options.errorResponse instanceof Error)
             throw options.errorResponse
           else if (options.errorResponse instanceof Response) {
@@ -91,6 +91,10 @@ export const plugin = (userOptions?: Partial<Options>) => {
           }
         }
 
+        // append headers
+        for (const [key, value] of Object.entries(builtHeaders))
+          set.headers[key] = value
+
         logger('plugin', 'clientKey %s passed through with %d/%d request used (resetting in %d seconds)', clientKey, options.max - payload.remaining, options.max, reset)
       }
     })
@@ -98,7 +102,7 @@ export const plugin = (userOptions?: Partial<Options>) => {
     // @ts-expect-error somehow qi is being sent from elysia, but there's no type declaration for it
     app.onError({ as: options.scoping }, async ({ set, request, query, path, store, cookie, error, body, params, headers, qi, code, ...rest }) => {
       if (!options.countFailedRequest) {
-        const clientKey = await options.generator(request, serverApp.server, rest)
+        const clientKey = await options.generator(request, options.injectServer?.() ?? app.server, rest)
 
         logger('plugin', 'request failed for clientKey: %s, refunding', clientKey)
         await options.context.decrement(clientKey)
