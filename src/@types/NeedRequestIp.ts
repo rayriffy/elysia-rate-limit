@@ -1,4 +1,4 @@
-import { Server } from 'bun'
+import type { Server } from 'bun'
 
 export interface NeedRequestIP {
   [key: string]: any

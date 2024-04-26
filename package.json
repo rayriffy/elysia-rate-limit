@@ -22,8 +22,7 @@
   "scripts": {
     "dev": "DEBUG=* bun run --hot example/basic.ts",
     "dev:multi": "DEBUG=* bun run --hot example/multiInstance.ts",
-    "build": "rm -rf dist && tsc --project tsconfig.esm.json",
-    "updateall": "pnpm i && pnpm update -L && bun i"
+    "build": "rm -rf dist && tsc --project tsconfig.esm.json"
   },
   "keywords": [
     "elysia",

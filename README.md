@@ -56,28 +56,50 @@ Default: `10`
 
 Maximum of request to be allowed during 1 `duration` timeframe.
 
-### responseCode
+### errorResponse
 
-`number`
+`string | Response | Error`
 
-Default: `429`
+// Object to response when rate-limit reached
 
-HTTP response code to be sent when the rate limit was reached.
-By default,
-it will return `429 Too Many Requests`
-referring to [RFC 6585 specification](https://www.rfc-editor.org/rfc/rfc6585#section-4)
+```ts
+import { Elysia } from 'elysia'
+import { rateLimit } from 'elysia-rate-limit'
+import { HttpStatusEnum } from 'elysia-http-status-code/status'
 
-### responseMessage
+export class rateLimitError extends Error {
+  constructor(
+    public message: string = 'TOO_MANY_REQUESTS',
+    public detail: string = '',
+    public status: number = HttpStatusEnum.HTTP_429_TOO_MANY_REQUESTS // or just 429
+  ) {
+    super(message)
+  }
+}
 
-`any`
-
-Default: `rate-limit reached`
-
-Message to be sent when the rate limit was reached
+new Elysia()
+  .use(
+    rateLimit({
+      errorResponse: new rateLimitError(),
+    })
+  )
+  // use with error hanlder
+  .error({
+    RateLimit: rateLimitError,
+  })
+  .onError({ as: 'global' }, ({ code }) => {
+    switch (code) {
+      case 'RateLimit':
+        return code
+        break
+    }
+  })
+  .listen(3000)
+```
 
 ### scoping
 
-`LifeCycleType`
+`'global' | 'local' | 'scoped'`
 
 Default: `'global'`
 
@@ -247,50 +269,4 @@ const app = new Elysia({
   )
 
 appInstance.server = app.server
-```
-
-### throwOnError
-
-`Error`
-
-Throw this object when rate-limit reached
-
-Read more :
-
-- [Error Provider - ElysiaJS | ElysiaJS](https://elysiajs.com/validation/error-provider.html#onerror)
-- [Error Handling - ElysiaJS | ElysiaJS](https://elysiajs.com/life-cycle/on-error.html)
-
-```ts
-import { Elysia } from 'elysia'
-import { rateLimit } from 'elysia-rate-limit'
-import { HttpStatusEnum } from 'elysia-http-status-code/status'
-
-export class rateLimitError extends Error {
-  constructor(
-    public message: string = 'TOO_MANY_REQUESTS',
-    public detail: string = '',
-    public status: number = HttpStatusEnum.HTTP_429_TOO_MANY_REQUESTS // or just 429
-  ) {
-    super(message)
-  }
-}
-
-new Elysia()
-  .use(
-    rateLimit({
-      throwOnError: new rateLimitError(),
-    })
-  )
-  // use with error hanlder
-  .error({
-    RateLimit: rateLimitError,
-  })
-  .onError({ as: 'global' }, ({ code }) => {
-    switch (code) {
-      case 'RateLimit':
-        return code
-        break
-    }
-  })
-  .listen(3000)
 ```

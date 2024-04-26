@@ -63,12 +63,13 @@ export const plugin = (userOptions?: Partial<Options>) => {
           set.headers['Retry-After'] = String(
             Math.ceil(options.duration / 1000)
           )
-          set.status = options.responseCode
           
-          if (options.throwOnError) {
-            throw options.throwOnError
-          }
-          return options.responseMessage
+          if (options.errorResponse instanceof Error) 
+            throw options.errorResponse
+          
+          if (typeof options.errorResponse === "string") 
+            set.status = 429
+          return options.errorResponse
         }
 
         logger('plugin', 'clientKey %s passed through with %d/%d request used (resetting in %d seconds)', clientKey, options.max - payload.remaining, options.max, reset)

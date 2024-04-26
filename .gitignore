@@ -180,4 +180,3 @@ dist
 package-lock.json
 pnpm-lock.yaml
 yaml.lock
-bun.lockb

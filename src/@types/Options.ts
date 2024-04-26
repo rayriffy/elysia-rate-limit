@@ -1,7 +1,6 @@
 import type { Context } from './Context'
 import type { Generator } from './Generator'
 import type { GetServer } from './GetServer'
-import type { LifeCycleType } from 'elysia/dist/types'
 
 export interface Options {
   // The duration for plugin to remember the requests (Default: 60000ms)
@@ -10,14 +9,11 @@ export interface Options {
   // Maximum of requests per specified duration (Default: 10)
   max: number
 
-  // status code to be sent when rate-limit reached (Default: 429 per RFC 6585 specification)
-  responseCode: number
-
-  // message response when rate-limit reached (Default: rate-limit reached)
-  responseMessage: any
+  // Object to response when rate-limit reached
+  errorResponse: string | Response | Error
 
   // scoping for rate limiting, set global by default to affect every request, but you can adjust to local to affect only within current instance
-  scoping: LifeCycleType
+  scoping: 'global' | 'local' | 'scoped'
 
   // should the rate limit be counted when a request result is failed (Default: false)
   countFailedRequest: boolean
@@ -35,7 +31,4 @@ export interface Options {
 
   // get server instance function
   getServer: GetServer
-
-  // throw this object when rate-limit reached
-  throwOnError?: Error
 }
