@@ -202,63 +202,50 @@ by default, this will always return `false` which means counted everything.
 
 Default: `(app) => app`
 
+A custom function
+to get access server instance
+
+Use with `rateLimitDefaultOptions` as a global configuration.
+
 ```ts
 import { Elysia } from 'elysia'
-import { rateLimit } from 'elysia-rate-limit'
+import { rateLimit, rateLimitDefaultOptions } from 'elysia-rate-limit'
 import bearer from '@elysiajs/bearer'
 
 class appInstance {
   static server: Server | null
 }
 
-const setup = new Elysia({
-  name: 'setup',
-}).use(bearer())
+rateLimitDefaultOptions.getServer = _ => appInstance
 
-const userList = new Elysia({
-  name: 'userListRoute',
-})
-  .use(setup)
+const setup = new Elysia({name: 'setup'}).use(bearer())
+
+const userList = new Elysia({name: 'userListRoute'}).use(setup)
   .use(
     rateLimit({
-      getServer: _ => appInstance,
       scoping: 'scoped',
       max: 10,
       duration: 100,
     })
   )
-  .get('/user', ({ bearer }) => {
-    return user.list()
-  })
+  .get('/user', ({ bearer }) => user.info(bearer))
 
-const userAdd = new Elysia({
-  name: 'userAddRoute',
-})
-  .use(setup)
+const userAdd = new Elysia({name: 'userAddRoute'}).use(setup)
   .use(
     rateLimit({
-      getServer: _ => appInstance,
       scoping: 'scoped',
       max: 2,
       duration: 1000,
     })
   )
-  .post('/user', ({ body }) => {
-    return user.add(body)
-  })
+  .post('/user', ({ body }) => user.add(body))
 
-const app = new Elysia({
-  name: 'app',
-})
+const app = new Elysia({name: 'app'})
   .use(helmet())
 
-  .use(userAdd)
-  .use(userList)
+  .use(userAdd).use(userList)
 
-  .listen(
-    {
-      port: 8081,
-    },
+  .listen({port: 8081}
     ({ development, hostname, port }) => {
       console.log(
         `🦊 Elysia is running at ${hostname}:${port} ${
