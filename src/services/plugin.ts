@@ -21,7 +21,7 @@ export const plugin = (userOptions?: Partial<Options>) => {
     // @ts-expect-error somehow qi is being sent from elysia, but there's no type declaration for it
     app.onBeforeHandle({ as: options.scoping }, async ({ set, request, query, path, store, cookie, error, body, params, headers, qi, ...rest }) => {
       let clientKey: string | undefined
- 
+
       /**
        * if a skip option has two parameters,
        * then we will generate clientKey ahead of time.
@@ -63,12 +63,12 @@ export const plugin = (userOptions?: Partial<Options>) => {
           set.headers['Retry-After'] = String(
             Math.ceil(options.duration / 1000)
           )
-          
-          if (options.errorResponse instanceof Error) 
+
+          if (options.errorResponse instanceof Error)
             throw options.errorResponse
-          
-          if (typeof options.errorResponse === "string") 
+          else if (typeof options.errorResponse === "string")
             set.status = 429
+
           return options.errorResponse
         }
 
