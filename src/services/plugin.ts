@@ -79,7 +79,7 @@ export const plugin = (userOptions?: Partial<Options>) => {
 
             return clonedResponse
           }
-          else if (typeof options.errorResponse === "string") {
+          else {
             // append headers
             for (const [key, value] of Object.entries(builtHeaders))
               set.headers[key] = value
