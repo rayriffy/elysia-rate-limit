@@ -38,7 +38,7 @@
   "license": "MIT",
   "dependencies": {
     "debug": "4.3.4",
-    "lru-cache": "10.2.0"
+    "lru-cache": "10.2.1"
   },
   "devDependencies": {
     "@changesets/cli": "2.27.1",
