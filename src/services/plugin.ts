@@ -52,24 +52,43 @@ export const plugin = (userOptions?: Partial<Options>) => {
 
         // set standard headers
         const reset = Math.max(0, Math.ceil((nextReset.getTime() - Date.now()) / 1000))
-        set.headers['RateLimit-Limit'] = String(options.max)
-        set.headers['RateLimit-Remaining'] = String(payload.remaining)
-        set.headers['RateLimit-Reset'] = String(reset)
+
+        let builtHeaders: Record<string, string> = {
+          'RateLimit-Limit': String(options.max),
+          'RateLimit-Remaining': String(payload.remaining),
+          'RateLimit-Reset': String(reset),
+        }
 
         // reject if limit were reached
         if (payload.current >= payload.limit + 1) {
           logger('plugin', 'rate limit exceeded for clientKey: %s (resetting in %d seconds)', clientKey, reset)
 
-          set.headers['Retry-After'] = String(
-            Math.ceil(options.duration / 1000)
-          )
+          builtHeaders['Retry-After'] = String(Math.ceil(options.duration / 1000))
+
+          console.log(options.errorResponse instanceof Response)
 
           if (options.errorResponse instanceof Error)
             throw options.errorResponse
-          else if (typeof options.errorResponse === "string")
+          else if (options.errorResponse instanceof Response) {
+            // duplicate the response to avoid mutation
+            const clonedResponse = options.errorResponse.clone()
+
+            // append headers
+            for (const [key, value] of Object.entries(builtHeaders))
+              clonedResponse.headers.set(key, value)
+
+            return clonedResponse
+          }
+          else if (typeof options.errorResponse === "string") {
+            // append headers
+            for (const [key, value] of Object.entries(builtHeaders))
+              set.headers[key] = value
+
+            // set default status code
             set.status = 429
 
-          return options.errorResponse
+            return options.errorResponse
+          }
         }
 
         logger('plugin', 'clientKey %s passed through with %d/%d request used (resetting in %d seconds)', clientKey, options.max - payload.remaining, options.max, reset)

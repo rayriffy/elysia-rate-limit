@@ -60,16 +60,43 @@ Maximum of request to be allowed during 1 `duration` timeframe.
 
 `string | Response | Error`
 
-// Object to response when rate-limit reached
+Default: `rate-limit reached`
+
+Response to be sent when the rate limit is reached.
+
+If you define a value as a string,
+then it will be sent as a plain text response with status code 429. If you define a value as a `Response` object,
+then it will be sent as is.
+And if you define a value as an `Error` object, then it will be thrown as an error.
+
+<details>
+<summary>Example for <code>Response</code> object response</summary>
 
 ```ts
-import { Elysia } from 'elysia'
-import { rateLimit } from 'elysia-rate-limit'
+new Elysia()
+  .use(
+    rateLimit({
+      errorResponse: new Response("rate-limited", {
+        status: 429,
+        headers: new Headers({
+          'Content-Type': 'text/plain',
+          'Custom-Header': 'custom',
+        }),
+      }),
+    })
+  )
+```
+</details>
+
+<details>
+<summary>Example for <code>Error</code> object response</summary>
+
+```ts
 import { HttpStatusEnum } from 'elysia-http-status-code/status'
 
-export class rateLimitError extends Error {
+export class RateLimitError extends Error {
   constructor(
-    public message: string = 'TOO_MANY_REQUESTS',
+    public message: string = 'rate-limited',
     public detail: string = '',
     public status: number = HttpStatusEnum.HTTP_429_TOO_MANY_REQUESTS // or just 429
   ) {
@@ -80,22 +107,23 @@ export class rateLimitError extends Error {
 new Elysia()
   .use(
     rateLimit({
-      errorResponse: new rateLimitError(),
+      errorResponse: new RateLimitError(),
     })
   )
   // use with error hanlder
   .error({
-    RateLimit: rateLimitError,
+    rateLimited: RateLimitError,
   })
   .onError({ as: 'global' }, ({ code }) => {
     switch (code) {
-      case 'RateLimit':
+      case 'rateLimited':
         return code
         break
     }
   })
-  .listen(3000)
 ```
+
+</details>
 
 ### scoping
 
