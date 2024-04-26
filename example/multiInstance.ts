@@ -3,6 +3,7 @@ import { swagger } from '@elysiajs/swagger'
 import { ip } from 'elysia-ip' // just a glitch pls ignore this
 
 import { rateLimit } from '../src'
+
 import type { Generator } from '../src'
 
 const keyGenerator: Generator<{ ip: string }> = async (req, server, { ip }) => Bun.hash(JSON.stringify(ip)).toString()

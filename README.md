@@ -6,7 +6,6 @@ Lightweight rate limiter plugin for [Elysia.js](https://elysiajs.com/)
 ![NPM Downloads](https://img.shields.io/npm/dw/elysia-rate-limit)
 ![NPM License](https://img.shields.io/npm/l/elysia-rate-limit)
 
-
 ## Install
 
 ```
@@ -57,28 +56,78 @@ Default: `10`
 
 Maximum of request to be allowed during 1 `duration` timeframe.
 
-### responseCode
+### errorResponse
 
-`number`
-
-Default: `429`
-
-HTTP response code to be sent when the rate limit was reached.
-By default,
-it will return `429 Too Many Requests`
-referring to [RFC 6585 specification](https://www.rfc-editor.org/rfc/rfc6585#section-4)
-
-### responseMessage
-
-`any`
+`string | Response | Error`
 
 Default: `rate-limit reached`
 
-Message to be sent when the rate limit was reached
+Response to be sent when the rate limit is reached.
+
+If you define a value as a string,
+then it will be sent as a plain text response with status code 429. If you define a value as a `Response` object,
+then it will be sent as is.
+And if you define a value as an `Error` object, then it will be thrown as an error.
+
+<details>
+<summary>Example for <code>Response</code> object response</summary>
+
+```ts
+new Elysia()
+  .use(
+    rateLimit({
+      errorResponse: new Response("rate-limited", {
+        status: 429,
+        headers: new Headers({
+          'Content-Type': 'text/plain',
+          'Custom-Header': 'custom',
+        }),
+      }),
+    })
+  )
+```
+</details>
+
+<details>
+<summary>Example for <code>Error</code> object response</summary>
+
+```ts
+import { HttpStatusEnum } from 'elysia-http-status-code/status'
+
+export class RateLimitError extends Error {
+  constructor(
+    public message: string = 'rate-limited',
+    public detail: string = '',
+    public status: number = HttpStatusEnum.HTTP_429_TOO_MANY_REQUESTS // or just 429
+  ) {
+    super(message)
+  }
+}
+
+new Elysia()
+  .use(
+    rateLimit({
+      errorResponse: new RateLimitError(),
+    })
+  )
+  // use with error hanlder
+  .error({
+    rateLimited: RateLimitError,
+  })
+  .onError({ as: 'global' }, ({ code }) => {
+    switch (code) {
+      case 'rateLimited':
+        return code
+        break
+    }
+  })
+```
+
+</details>
 
 ### scoping
 
-`'global' | 'local'`
+`'global' | 'local' | 'scoped'`
 
 Default: `'global'`
 
@@ -88,6 +137,8 @@ This option will allow you
 to choose scope `local` apply to only current instance and descendant only.
 But by default,
 rate limit plugin will apply to all instances that apply the plugin.
+
+Read more : [Scope - ElysiaJS | ElysiaJS](https://elysiajs.com/essential/scope.html#scope)
 
 ### generator
 
@@ -119,7 +170,7 @@ import type { Generator } from 'elysia-rate-limit'
 
 const ipGenerator: Generator<{ ip: SocketAddress }> = (_req, _serv, { ip }) => {
   return ip
-} 
+}
 ```
 
 ### countFailedRequest
@@ -153,13 +204,12 @@ By default, context implementation, caching will be an LRU cache with a maximum 
 ```ts
 import { DefaultContext } from 'elysia-rate-limit'
 
-new Elysia()
-  .use(
-    rateLimit({
-      // define max cache size to 10,000
-      context: new DefaultContext(10_000),
-    })
-  )
+new Elysia().use(
+  rateLimit({
+    // define max cache size to 10,000
+    context: new DefaultContext(10_000),
+  })
+)
 ```
 
 ### skip
@@ -173,3 +223,18 @@ to determine that should this request be counted into rate-limit
 or not based on information given by `Request` object
 (i.e., Skip counting rate-limit on some route) and the key of the given request,
 by default, this will always return `false` which means counted everything.
+
+### injectServer
+
+`() => Server`
+
+Default: `undefined`
+
+A function to inject server instance to the plugin,
+this is useful
+when you want to use default key generator in detached Elysia instances.
+You can check out the example [here](./example/muliInstanceInjected.ts).
+
+Please use this function as a last resort,
+as defining this option will make plugin to make an extra function call,
+which may affect performance.

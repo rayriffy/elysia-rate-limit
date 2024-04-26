@@ -1,5 +1,6 @@
 export { plugin as rateLimit } from './services/plugin'
 export { DefaultContext } from './services/defaultContext'
+export { defaultOptions } from './constants/defaultOptions'
 
 export type { Context } from './@types/Context'
 export type { Options } from './@types/Options'
