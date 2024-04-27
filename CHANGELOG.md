@@ -1,5 +1,15 @@
 # elysia-rate-limit
 
+## 4.0.0
+
+### Major Changes
+
+- 17f10e3: **BREAKING CHANGES** remove `responseCode`, and `responseMessage` in favor of new `errorResponse` option. please consult with documentation for more details
+
+### Minor Changes
+
+- 17f10e3: added `injectServer` option
+
 ## 3.2.2
 
 ### Patch Changes
