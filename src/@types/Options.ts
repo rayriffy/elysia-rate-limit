@@ -35,5 +35,5 @@ export interface Options {
   // uses this as last resort only
   // since this function will slightly reduce server performance
   // (Default: not defined)
-  injectServer?: () => Server
+  injectServer?: () => Server | null
 }
