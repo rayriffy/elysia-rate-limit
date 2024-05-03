@@ -1,4 +1,4 @@
-import type Elysia from 'elysia'
+import Elysia from 'elysia'
 
 import { defaultOptions } from '../constants/defaultOptions'
 import { DefaultContext } from './defaultContext'
@@ -20,8 +20,12 @@ export const plugin = (userOptions?: Partial<Options>) => {
   // do not make plugin to return async
   // otherwise request will be triggered twice
   return (app: Elysia) => {
+    const plugin = new Elysia({
+      name: "elysia-rate-limit"
+    })
+
     // @ts-expect-error somehow qi is being sent from elysia, but there's no type declaration for it
-    app.onBeforeHandle({ as: options.scoping }, async ({ set, request, query, path, store, cookie, error, body, params, headers, qi, ...rest }) => {
+    plugin.onBeforeHandle({ as: options.scoping }, async ({ set, request, query, path, store, cookie, error, body, params, headers, qi, ...rest }) => {
       let clientKey: string | undefined
 
       /**
@@ -100,7 +104,7 @@ export const plugin = (userOptions?: Partial<Options>) => {
     })
 
     // @ts-expect-error somehow qi is being sent from elysia, but there's no type declaration for it
-    app.onError({ as: options.scoping }, async ({ set, request, query, path, store, cookie, error, body, params, headers, qi, code, ...rest }) => {
+    plugin.onError({ as: options.scoping }, async ({ set, request, query, path, store, cookie, error, body, params, headers, qi, code, ...rest }) => {
       if (!options.countFailedRequest) {
         const clientKey = await options.generator(request, options.injectServer?.() ?? app.server, rest)
 
@@ -109,11 +113,11 @@ export const plugin = (userOptions?: Partial<Options>) => {
       }
     })
 
-    app.onStop(async () => {
+    plugin.onStop(async () => {
       logger('plugin', 'kill signal received')
       await options.context.kill()
     })
 
-    return app
+    return plugin
   }
 }
