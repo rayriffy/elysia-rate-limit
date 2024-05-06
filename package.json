@@ -44,7 +44,7 @@
     "@changesets/cli": "2.27.1",
     "@elysiajs/swagger": "^1.0.5",
     "@types/debug": "^4.1.12",
-    "bun-types": "^1.1.6",
+    "bun-types": "^1.1.7",
     "elysia": "1.0.16",
     "elysia-ip": "^1.0.4",
     "prettier": "^3.2.5",
