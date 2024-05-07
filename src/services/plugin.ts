@@ -118,6 +118,6 @@ export const plugin = (userOptions?: Partial<Options>) => {
       await options.context.kill()
     })
 
-    return plugin
+    return app.use(plugin)
   }
 }
