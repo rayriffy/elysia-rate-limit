@@ -233,7 +233,7 @@ Default: `undefined`
 A function to inject server instance to the plugin,
 this is useful
 when you want to use default key generator in detached Elysia instances.
-You can check out the example [here](./example/muliInstanceInjected.ts).
+You can check out the example [here](./example/multiInstanceInjected.ts).
 
 Please use this function as a last resort,
 as defining this option will make plugin to make an extra function call,
