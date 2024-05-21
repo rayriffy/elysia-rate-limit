@@ -2,4 +2,4 @@
 "elysia-rate-limit": patch
 ---
 
-fixes multiple instance running duplicate jobs at the same time
+fixes multiple instances running duplicate jobs at the same time
