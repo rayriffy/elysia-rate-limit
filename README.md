@@ -127,7 +127,7 @@ new Elysia()
 
 ### scoping
 
-`'global' | 'local' | 'scoped'`
+`'global' | 'scoped'`
 
 Default: `'global'`
 
