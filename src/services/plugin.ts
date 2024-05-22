@@ -26,7 +26,6 @@ export const plugin = (userOptions?: Partial<Options>) => {
 
     // @ts-expect-error somehow qi is being sent from elysia, but there's no type declaration for it
     plugin.onBeforeHandle({ as: options.scoping }, async ({ set, request, query, path, store, cookie, error, body, params, headers, qi, ...rest }) => {
-      console.log('onBeforeHandle')
       let clientKey: string | undefined
 
       /**
