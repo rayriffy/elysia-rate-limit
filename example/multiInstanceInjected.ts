@@ -9,7 +9,7 @@ import type { Server } from 'bun'
 let server: Server | null
 
 const options: Partial<Options> = {
-  scoping: 'local',
+  scoping: 'scoped',
   duration: 200 * 1000,
   injectServer: () => {
     return server!

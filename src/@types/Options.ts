@@ -15,7 +15,7 @@ export interface Options {
 
   // scoping for rate limiting, set global by default to affect every request,
   // but you can adjust to local to affect only within current instance
-  scoping: 'global' | 'local' | 'scoped'
+  scoping: 'global' | 'scoped'
 
   // should the rate limit be counted when a request result is failed (Default: false)
   countFailedRequest: boolean
@@ -35,5 +35,5 @@ export interface Options {
   // uses this as last resort only
   // since this function will slightly reduce server performance
   // (Default: not defined)
-  injectServer?: () => Server
+  injectServer?: () => Server | null
 }
