@@ -1,5 +1,16 @@
 # elysia-rate-limit
 
+## 4.1.0
+
+### Minor Changes
+
+- 3d0c0ae: added ability to let pligin not to send RateLimit-\* headers
+- e867896: scoping `local` is considered unstable, please move to `scoped`
+
+### Patch Changes
+
+- e867896: fixes multiple instances running duplicate jobs at the same time
+
 ## 4.0.0
 
 ### Major Changes
