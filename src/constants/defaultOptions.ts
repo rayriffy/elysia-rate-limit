@@ -9,5 +9,6 @@ export const defaultOptions: Omit<Options, 'context'> = {
   scoping: 'global',
   countFailedRequest: false,
   generator: defaultKeyGenerator,
+  headers: true,
   skip: () => false,
 }

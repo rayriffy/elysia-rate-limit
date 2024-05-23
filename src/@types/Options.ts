@@ -36,4 +36,8 @@ export interface Options {
   // since this function will slightly reduce server performance
   // (Default: not defined)
   injectServer?: () => Server | null
+
+  // let the plugin in control of RateLimit-* headers
+  // (Default: true)
+  headers: boolean
 }

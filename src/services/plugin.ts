@@ -78,15 +78,17 @@ export const plugin = (userOptions?: Partial<Options>) => {
             const clonedResponse = options.errorResponse.clone()
 
             // append headers
-            for (const [key, value] of Object.entries(builtHeaders))
-              clonedResponse.headers.set(key, value)
+            if (options.headers)
+              for (const [key, value] of Object.entries(builtHeaders))
+                clonedResponse.headers.set(key, value)
 
             return clonedResponse
           }
           else {
             // append headers
-            for (const [key, value] of Object.entries(builtHeaders))
-              set.headers[key] = value
+            if (options.headers)
+              for (const [key, value] of Object.entries(builtHeaders))
+                set.headers[key] = value
 
             // set default status code
             set.status = 429
@@ -96,8 +98,9 @@ export const plugin = (userOptions?: Partial<Options>) => {
         }
 
         // append headers
-        for (const [key, value] of Object.entries(builtHeaders))
-          set.headers[key] = value
+        if (options.headers)
+          for (const [key, value] of Object.entries(builtHeaders))
+            set.headers[key] = value
 
         logger('plugin', 'clientKey %s passed through with %d/%d request used (resetting in %d seconds)', clientKey, options.max - payload.remaining, options.max, reset)
       }
