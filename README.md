@@ -212,6 +212,15 @@ new Elysia().use(
 )
 ```
 
+### headers
+
+`boolean`
+
+Default `true`
+
+Should this plugin automatically set `RateLimit-*` headers to the response?
+If you want to disable this feature, you can set this option to `false`.
+
 ### skip
 
 `(request: Request, key: string): boolean | Promise<boolean>`
