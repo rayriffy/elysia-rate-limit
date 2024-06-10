@@ -2,9 +2,9 @@
 
 Lightweight rate limiter plugin for [Elysia.js](https://elysiajs.com/)
 
-![NPM Version](https://img.shields.io/npm/v/elysia-rate-limit)
-![NPM Downloads](https://img.shields.io/npm/dw/elysia-rate-limit)
-![NPM License](https://img.shields.io/npm/l/elysia-rate-limit)
+[![NPM Version](https://img.shields.io/npm/v/elysia-rate-limit)](https://www.npmjs.com/package/elysia-rate-limit)
+[![NPM Downloads](https://img.shields.io/npm/dw/elysia-rate-limit)](https://www.npmjs.com/package/elysia-rate-limit)
+[![NPM License](https://img.shields.io/npm/l/elysia-rate-limit)](https://www.npmjs.com/package/elysia-rate-limit)
 
 ## Install
 
