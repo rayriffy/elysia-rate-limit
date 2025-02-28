@@ -21,70 +21,105 @@ export const plugin = (userOptions?: Partial<Options>) => {
   // otherwise request will be triggered twice
   return (app: Elysia) => {
     const plugin = new Elysia({
-      name: "elysia-rate-limit"
+      name: 'elysia-rate-limit',
     })
 
-    // @ts-expect-error somehow qi is being sent from elysia, but there's no type declaration for it
-    plugin.onBeforeHandle({ as: options.scoping }, async ({ set, request, query, path, store, cookie, error, body, params, headers, qi, ...rest }) => {
-      let clientKey: string | undefined
+    plugin.onBeforeHandle(
+      { as: options.scoping },
+      async ({
+        set,
+        request,
+        query,
+        path,
+        store,
+        cookie,
+        error,
+        body,
+        params,
+        headers,
+        // @ts-expect-error somehow qi is being sent from elysia, but there's no type declaration for it
+        qi,
+        ...rest
+      }) => {
+        let clientKey: string | undefined
 
-      /**
-       * if a skip option has two parameters,
-       * then we will generate clientKey ahead of time.
-       * this is made to skip generating key unnecessary if only check for request
-       * and saving some cpu consumption when actually skipped
-       */
-      if (options.skip.length >= 2)
-        clientKey = await options.generator(request, options.injectServer?.() ?? app.server, rest)
-
-      // if decided to skip, then do nothing and let the app continue
-      if (await options.skip(request, clientKey) === false) {
         /**
-         * if a skip option has less than two parameters,
-         * that's mean clientKey does not have a key yet
-         * then generate one
+         * if a skip option has two parameters,
+         * then we will generate clientKey ahead of time.
+         * this is made to skip generating key unnecessary if only check for request
+         * and saving some cpu consumption when actually skipped
          */
-        if (options.skip.length < 2)
-          clientKey = await options.generator(request, options.injectServer?.() ?? app.server, rest)
+        if (options.skip.length >= 2)
+          clientKey = await options.generator(
+            request,
+            options.injectServer?.() ?? app.server,
+            rest
+          )
 
-        const { count, nextReset } = await options.context.increment(clientKey!)
+        // if decided to skip, then do nothing and let the app continue
+        if ((await options.skip(request, clientKey)) === false) {
+          /**
+           * if a skip option has less than two parameters,
+           * that's mean clientKey does not have a key yet
+           * then generate one
+           */
+          if (options.skip.length < 2)
+            clientKey = await options.generator(
+              request,
+              options.injectServer?.() ?? app.server,
+              rest
+            )
 
-        const payload = {
-          limit: options.max,
-          current: count,
-          remaining: Math.max(options.max - count, 0),
-          nextReset,
-        }
+          const { count, nextReset } = await options.context.increment(
+            clientKey!
+          )
 
-        // set standard headers
-        const reset = Math.max(0, Math.ceil((nextReset.getTime() - Date.now()) / 1000))
-
-        let builtHeaders: Record<string, string> = {
-          'RateLimit-Limit': String(options.max),
-          'RateLimit-Remaining': String(payload.remaining),
-          'RateLimit-Reset': String(reset),
-        }
-
-        // reject if limit were reached
-        if (payload.current >= payload.limit + 1) {
-          logger('plugin', 'rate limit exceeded for clientKey: %s (resetting in %d seconds)', clientKey, reset)
-
-          builtHeaders['Retry-After'] = String(Math.ceil(options.duration / 1000))
-
-          if (options.errorResponse instanceof Error)
-            throw options.errorResponse
-          else if (options.errorResponse instanceof Response) {
-            // duplicate the response to avoid mutation
-            const clonedResponse = options.errorResponse.clone()
-
-            // append headers
-            if (options.headers)
-              for (const [key, value] of Object.entries(builtHeaders))
-                clonedResponse.headers.set(key, value)
-
-            return clonedResponse
+          const payload = {
+            limit: options.max,
+            current: count,
+            remaining: Math.max(options.max - count, 0),
+            nextReset,
           }
-          else {
+
+          // set standard headers
+          const reset = Math.max(
+            0,
+            Math.ceil((nextReset.getTime() - Date.now()) / 1000)
+          )
+
+          let builtHeaders: Record<string, string> = {
+            'RateLimit-Limit': String(options.max),
+            'RateLimit-Remaining': String(payload.remaining),
+            'RateLimit-Reset': String(reset),
+          }
+
+          // reject if limit were reached
+          if (payload.current >= payload.limit + 1) {
+            logger(
+              'plugin',
+              'rate limit exceeded for clientKey: %s (resetting in %d seconds)',
+              clientKey,
+              reset
+            )
+
+            builtHeaders['Retry-After'] = String(
+              Math.ceil(options.duration / 1000)
+            )
+
+            if (options.errorResponse instanceof Error)
+              throw options.errorResponse
+            if (options.errorResponse instanceof Response) {
+              // duplicate the response to avoid mutation
+              const clonedResponse = options.errorResponse.clone()
+
+              // append headers
+              if (options.headers)
+                for (const [key, value] of Object.entries(builtHeaders))
+                  clonedResponse.headers.set(key, value)
+
+              return clonedResponse
+            }
+
             // append headers
             if (options.headers)
               for (const [key, value] of Object.entries(builtHeaders))
@@ -95,26 +130,58 @@ export const plugin = (userOptions?: Partial<Options>) => {
 
             return options.errorResponse
           }
+
+          // append headers
+          if (options.headers)
+            for (const [key, value] of Object.entries(builtHeaders))
+              set.headers[key] = value
+
+          logger(
+            'plugin',
+            'clientKey %s passed through with %d/%d request used (resetting in %d seconds)',
+            clientKey,
+            options.max - payload.remaining,
+            options.max,
+            reset
+          )
         }
-
-        // append headers
-        if (options.headers)
-          for (const [key, value] of Object.entries(builtHeaders))
-            set.headers[key] = value
-
-        logger('plugin', 'clientKey %s passed through with %d/%d request used (resetting in %d seconds)', clientKey, options.max - payload.remaining, options.max, reset)
       }
-    })
+    )
 
-    // @ts-expect-error somehow qi is being sent from elysia, but there's no type declaration for it
-    plugin.onError({ as: options.scoping }, async ({ set, request, query, path, store, cookie, error, body, params, headers, qi, code, ...rest }) => {
-      if (!options.countFailedRequest) {
-        const clientKey = await options.generator(request, options.injectServer?.() ?? app.server, rest)
+    plugin.onError(
+      { as: options.scoping },
+      async ({
+        set,
+        request,
+        query,
+        path,
+        store,
+        cookie,
+        error,
+        body,
+        params,
+        headers,
+        // @ts-expect-error somehow qi is being sent from elysia, but there's no type declaration for it
+        qi,
+        code,
+        ...rest
+      }) => {
+        if (!options.countFailedRequest) {
+          const clientKey = await options.generator(
+            request,
+            options.injectServer?.() ?? app.server,
+            rest
+          )
 
-        logger('plugin', 'request failed for clientKey: %s, refunding', clientKey)
-        await options.context.decrement(clientKey)
+          logger(
+            'plugin',
+            'request failed for clientKey: %s, refunding',
+            clientKey
+          )
+          await options.context.decrement(clientKey)
+        }
       }
-    })
+    )
 
     plugin.onStop(async () => {
       logger('plugin', 'kill signal received')

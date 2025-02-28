@@ -25,13 +25,7 @@
     "dev:inject": "DEBUG=* bun run --hot example/multiInstanceInjected.ts",
     "build": "rm -rf dist && tsc --project tsconfig.esm.json"
   },
-  "keywords": [
-    "elysia",
-    "rate",
-    "limit",
-    "ratelimit",
-    "rate-limit"
-  ],
+  "keywords": ["elysia", "rate", "limit", "ratelimit", "rate-limit"],
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org"

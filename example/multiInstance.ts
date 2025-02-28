@@ -6,22 +6,27 @@ import { rateLimit } from '../src'
 
 import type { Generator } from '../src'
 
-const keyGenerator: Generator<{ ip: string }> = async (req, server, { ip }) => Bun.hash(JSON.stringify(ip)).toString()
+const keyGenerator: Generator<{ ip: string }> = async (req, server, { ip }) =>
+  Bun.hash(JSON.stringify(ip)).toString()
 
 const aInstance = new Elysia()
-  .use(rateLimit({
-    scoping: 'scoped',
-    duration: 200 * 1000,
-    generator: keyGenerator,
-  }))
+  .use(
+    rateLimit({
+      scoping: 'scoped',
+      duration: 200 * 1000,
+      generator: keyGenerator,
+    })
+  )
   .get('/a', () => 'a')
 
 const bInstance = new Elysia()
-  .use(rateLimit({
-    scoping: 'scoped',
-    duration: 100 * 1000,
-    generator: keyGenerator,
-  }))
+  .use(
+    rateLimit({
+      scoping: 'scoped',
+      duration: 100 * 1000,
+      generator: keyGenerator,
+    })
+  )
   .get('/b', () => 'b')
 
 const app = new Elysia()

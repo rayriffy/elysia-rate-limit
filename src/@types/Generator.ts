@@ -1,4 +1,4 @@
-import type { Server } from 'bun'
+import type { Server } from 'elysia/dist/universal/server'
 import type { MaybePromise } from 'elysia'
 
 export type Generator<T extends object = {}> = (

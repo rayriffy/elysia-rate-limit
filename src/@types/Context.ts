@@ -1,5 +1,5 @@
-import type { MaybePromise } from "elysia"
-import type { Options } from "./Options"
+import type { MaybePromise } from 'elysia'
+import type { Options } from './Options'
 
 export interface Context {
   // class initialization for creating context

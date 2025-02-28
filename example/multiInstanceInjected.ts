@@ -18,13 +18,9 @@ const options: Partial<Options> = {
 
 // const keyGenerator: Generator<{ ip: string }> = async (req, server, { ip }) => Bun.hash(JSON.stringify(ip)).toString()
 
-const aInstance = new Elysia()
-  .use(rateLimit(options))
-  .get('/a', () => 'a')
+const aInstance = new Elysia().use(rateLimit(options)).get('/a', () => 'a')
 
-const bInstance = new Elysia()
-  .use(rateLimit(options))
-  .get('/b', () => 'b')
+const bInstance = new Elysia().use(rateLimit(options)).get('/b', () => 'b')
 
 const app = new Elysia()
   .use(swagger())

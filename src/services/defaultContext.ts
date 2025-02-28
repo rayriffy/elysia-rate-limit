@@ -15,12 +15,17 @@ export class DefaultContext implements Context {
   private store!: LRUCache<string, Item>
   private duration!: number
 
-  public constructor (maxSize = 5000) {
+  public constructor(maxSize = 5000) {
     this.maxSize = maxSize
   }
 
-  public init (options: Options) {
-    logger(`context:${this.id}`, 'initialized with maxSize: %d, and expire duration of %d seconds', this.maxSize, options.duration / 1000)
+  public init(options: Options) {
+    logger(
+      `context:${this.id}`,
+      'initialized with maxSize: %d, and expire duration of %d seconds',
+      this.maxSize,
+      options.duration / 1000
+    )
 
     this.duration = options.duration
     this.store = new LRUCache<string, Item>({
@@ -77,10 +82,8 @@ export class DefaultContext implements Context {
   public async reset(key?: string) {
     logger(`context:${this.id}`, 'resetting target %s', key ?? 'all')
 
-    if (typeof key === 'string')
-      this.store.delete(key)
-    else
-      this.store.clear()
+    if (typeof key === 'string') this.store.delete(key)
+    else this.store.clear()
   }
 
   public kill() {
