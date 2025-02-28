@@ -24,6 +24,12 @@
 
 - change build pipeline to serve builds from both tsup, and tsc
 
+## 4.1.1-beta.0
+
+### Patch Changes
+
+- fix plugin duplication due to missing seed provided to Elysia instances
+
 ## 4.1.0
 
 ### Minor Changes
