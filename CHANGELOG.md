@@ -1,5 +1,12 @@
 # elysia-rate-limit
 
+## 4.2.0-beta.1
+
+### Patch Changes
+
+- only package `dist/` directory on publish
+- 4f857b1: implement unit testing in repository
+
 ## 4.2.0-beta.0
 
 ### Minor Changes
