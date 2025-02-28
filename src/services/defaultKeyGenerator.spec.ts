@@ -1,6 +1,6 @@
 import { describe, expect, it, mock } from 'bun:test'
 import { defaultKeyGenerator } from './defaultKeyGenerator'
-import type { Server } from 'elysia/universal/server'
+import type { Server } from '../@types/Server.ts'
 
 describe('defaultKeyGenerator', () => {
   it('should return client IP address', () => {
