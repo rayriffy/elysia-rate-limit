@@ -19,7 +19,7 @@ export class DefaultContext implements Context {
     this.maxSize = maxSize
   }
 
-  public init(options: Options) {
+  public init(options: Omit<Options, 'context'>) {
     logger(
       `context:${this.id}`,
       'initialized with maxSize: %d, and expire duration of %d seconds',

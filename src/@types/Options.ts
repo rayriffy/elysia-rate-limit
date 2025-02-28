@@ -1,4 +1,4 @@
-import type { Server } from 'elysia/dist/universal/server'
+import type { Server } from 'elysia/universal/server'
 
 import type { Context } from './Context'
 import type { Generator } from './Generator'
