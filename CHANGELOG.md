@@ -1,5 +1,11 @@
 # elysia-rate-limit
 
+## 4.2.1-beta.0
+
+### Patch Changes
+
+- fix plugin duplication due to missing seed provided to Elysia instances
+
 ## 4.2.0
 
 ### Minor Changes

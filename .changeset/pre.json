@@ -2,9 +2,9 @@
   "mode": "pre",
   "tag": "beta",
   "initialVersions": {
-    "elysia-rate-limit": "4.1.0"
+    "elysia-rate-limit": "4.2.0"
   },
   "changesets": [
-    "thin-paths-know"
+    "nice-pumas-sneeze"
   ]
 }
