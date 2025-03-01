@@ -1,0 +1,12 @@
+{
+  "mode": "pre",
+  "tag": "beta",
+  "initialVersions": {
+    "elysia-rate-limit": "4.1.0"
+  },
+  "changesets": [
+    "lovely-goats-mate",
+    "olive-llamas-call",
+    "strong-chefs-hammer"
+  ]
+}

@@ -1,7 +1,6 @@
-import type { Server } from 'elysia/dist/universal/server'
-
 import type { Context } from './Context'
 import type { Generator } from './Generator'
+import type { Server } from './Server.ts'
 
 export interface Options {
   // The duration for plugin to remember the requests (Default: 60000ms)
