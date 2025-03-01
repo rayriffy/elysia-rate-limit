@@ -5,6 +5,7 @@
     "elysia-rate-limit": "4.2.0"
   },
   "changesets": [
+    "cuddly-bees-change",
     "nice-pumas-sneeze"
   ]
 }

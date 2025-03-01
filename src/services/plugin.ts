@@ -16,21 +16,13 @@ export const plugin = (userOptions?: Partial<Options>) => {
 
   options.context.init(options)
 
-  // create hash seed
-  const hasher = new Bun.CryptoHasher('sha256')
-  hasher.update(String(options.duration))
-  hasher.update(String(options.max))
-  hasher.update(options.scoping)
-  hasher.update(String(options.headers))
-  hasher.update(String(options.countFailedRequest))
-
   // NOTE:
   // do not make plugin to return async
   // otherwise request will be triggered twice
   return (app: Elysia) => {
     const plugin = new Elysia({
       name: 'elysia-rate-limit',
-      seed: hasher.digest('base64').replace(/\//g, '-'),
+      seed: options.max,
     })
 
     plugin.onBeforeHandle(
@@ -80,6 +72,7 @@ export const plugin = (userOptions?: Partial<Options>) => {
             )
 
           const { count, nextReset } = await options.context.increment(
+            // biome-ignore lint/style/noNonNullAssertion: <explanation>
             clientKey!
           )
 
@@ -96,7 +89,7 @@ export const plugin = (userOptions?: Partial<Options>) => {
             Math.ceil((nextReset.getTime() - Date.now()) / 1000)
           )
 
-          let builtHeaders: Record<string, string> = {
+          const builtHeaders: Record<string, string> = {
             'RateLimit-Limit': String(options.max),
             'RateLimit-Remaining': String(payload.remaining),
             'RateLimit-Reset': String(reset),

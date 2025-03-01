@@ -1,5 +1,11 @@
 # elysia-rate-limit
 
+## 4.2.1-beta.1
+
+### Patch Changes
+
+- seeding logic complexity reduction
+
 ## 4.2.1-beta.0
 
 ### Patch Changes
