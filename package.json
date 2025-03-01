@@ -1,6 +1,6 @@
 {
   "name": "elysia-rate-limit",
-  "version": "4.2.0-beta.1",
+  "version": "4.2.0",
   "description": "Rate-limiter for Elysia.js",
   "author": {
     "name": "rayriffy",

@@ -1,5 +1,16 @@
 # elysia-rate-limit
 
+## 4.2.0
+
+### Minor Changes
+
+- c19f554: change build pipeline to serve builds from both tsup, and tsc
+
+### Patch Changes
+
+- c19f554: only package `dist/` directory on publish
+- c19f554: implement unit testing in repository
+
 ## 4.2.0-beta.1
 
 ### Patch Changes
