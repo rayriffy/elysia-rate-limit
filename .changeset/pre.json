@@ -1,0 +1,10 @@
+{
+  "mode": "pre",
+  "tag": "beta",
+  "initialVersions": {
+    "elysia-rate-limit": "4.2.0"
+  },
+  "changesets": [
+    "nice-pumas-sneeze"
+  ]
+}
