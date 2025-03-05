@@ -138,7 +138,7 @@ to choose scope `local` apply to only current instance and descendant only.
 But by default,
 rate limit plugin will apply to all instances that apply the plugin.
 
-Read more : [Scope - ElysiaJS | ElysiaJS](https://elysiajs.com/essential/scope.html#scope)
+Read more : [Scope - ElysiaJS | ElysiaJS](https://elysiajs.com/essential/plugin.html#scope-level)
 
 ### generator
 
