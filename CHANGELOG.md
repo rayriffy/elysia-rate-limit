@@ -1,5 +1,17 @@
 # elysia-rate-limit
 
+## 4.2.1-beta.1
+
+### Patch Changes
+
+- seeding logic complexity reduction
+
+## 4.2.1-beta.0
+
+### Patch Changes
+
+- fix plugin duplication due to missing seed provided to Elysia instances
+
 ## 4.2.0
 
 ### Minor Changes
@@ -23,6 +35,12 @@
 ### Minor Changes
 
 - change build pipeline to serve builds from both tsup, and tsc
+
+## 4.1.1-beta.0
+
+### Patch Changes
+
+- fix plugin duplication due to missing seed provided to Elysia instances
 
 ## 4.1.0
 

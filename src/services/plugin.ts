@@ -22,6 +22,7 @@ export const plugin = (userOptions?: Partial<Options>) => {
   return (app: Elysia) => {
     const plugin = new Elysia({
       name: 'elysia-rate-limit',
+      seed: options.max,
     })
 
     plugin.onBeforeHandle(
@@ -71,6 +72,7 @@ export const plugin = (userOptions?: Partial<Options>) => {
             )
 
           const { count, nextReset } = await options.context.increment(
+            // biome-ignore lint/style/noNonNullAssertion: <explanation>
             clientKey!
           )
 
@@ -87,7 +89,7 @@ export const plugin = (userOptions?: Partial<Options>) => {
             Math.ceil((nextReset.getTime() - Date.now()) / 1000)
           )
 
-          let builtHeaders: Record<string, string> = {
+          const builtHeaders: Record<string, string> = {
             'RateLimit-Limit': String(options.max),
             'RateLimit-Remaining': String(payload.remaining),
             'RateLimit-Reset': String(reset),

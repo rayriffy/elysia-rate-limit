@@ -1,6 +1,5 @@
 .git
 .gitignore
-.prettierrc
 bun.lockb
 
 node_modules
