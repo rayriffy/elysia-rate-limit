@@ -1,5 +1,12 @@
 # elysia-rate-limit
 
+## 4.2.1
+
+### Patch Changes
+
+- b978900: seeding logic complexity reduction
+- b978900: fix plugin duplication due to missing seed provided to Elysia instances
+
 ## 4.2.1-beta.1
 
 ### Patch Changes
