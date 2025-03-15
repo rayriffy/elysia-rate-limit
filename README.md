@@ -149,12 +149,29 @@ Custom key generator to categorize client requests, return as a string. By defau
 If you deploy your server behind a proxy (i.e. NGINX, Cloudflare), you may need to implement your own generator to get client's real IP address.
 
 ```js
-const cloudflareGenerator = (req, server) =>
-  // get client ip via cloudflare header first
-  req.headers.get('CF-Connecting-IP') ??
-  // if not found, fallback to default generator
-  server?.requestIP(req)?.address ??
-  ''
+// IMPORTANT: Only use this if your server is behind Cloudflare AND
+// you've restricted access to only Cloudflare IPs
+const cloudflareGenerator = (req, server) => {
+  // Verify the request is coming from Cloudflare
+  // In production, you should maintain a list of Cloudflare IP ranges
+  // and verify the request IP is in that range
+  const isFromCloudflare = verifyCloudflareIP(server?.requestIP(req)?.address)
+  
+  if (isFromCloudflare) {
+    // Only trust CF-Connecting-IP if the request comes from Cloudflare
+    return req.headers.get('CF-Connecting-IP') ?? server?.requestIP(req)?.address ?? ''
+  }
+  
+  // For non-Cloudflare requests, use the direct IP
+  return server?.requestIP(req)?.address ?? ''
+}
+
+// Example function to verify Cloudflare IPs (implement this based on your needs)
+function verifyCloudflareIP(ip) {
+  // In a real implementation, check if IP is in Cloudflare's IP ranges
+  // https://www.cloudflare.com/ips/
+  return true // Replace with actual implementation
+}
 ```
 
 There's a third argument
