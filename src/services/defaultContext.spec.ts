@@ -1,4 +1,4 @@
-import { describe, expect, it, mock, beforeEach, afterEach } from 'bun:test'
+import { describe, expect, it, beforeEach, afterEach } from 'bun:test'
 import { DefaultContext } from './defaultContext'
 import { defaultOptions } from '../constants/defaultOptions'
 import type { Options } from '../@types/Options'

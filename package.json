@@ -44,8 +44,8 @@
   },
   "license": "MIT",
   "dependencies": {
-    "debug": "4.3.4",
-    "lru-cache": "10.2.2"
+    "@alloc/quick-lru": "5.2.0",
+    "debug": "4.3.4"
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",

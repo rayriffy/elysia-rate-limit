@@ -1,4 +1,4 @@
-import { LRUCache } from 'lru-cache'
+import AllocQuickLRU from '@alloc/quick-lru'
 
 import type { Options } from '../@types/Options'
 import type { Context } from '../@types/Context'
@@ -12,7 +12,7 @@ interface Item {
 export class DefaultContext implements Context {
   private readonly id: string = (Math.random() + 1).toString(36).substring(7)
   private readonly maxSize: number
-  private store!: LRUCache<string, Item>
+  private store!: AllocQuickLRU<string, Item>
   private duration!: number
 
   public constructor(maxSize = 5000) {
@@ -28,8 +28,8 @@ export class DefaultContext implements Context {
     )
 
     this.duration = options.duration
-    this.store = new LRUCache<string, Item>({
-      max: this.maxSize,
+    this.store = new AllocQuickLRU<string, Item>({
+      maxSize: this.maxSize,
     })
   }
 
