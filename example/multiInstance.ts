@@ -1,5 +1,5 @@
-import { Elysia } from 'elysia'
 import { swagger } from '@elysiajs/swagger'
+import { Elysia } from 'elysia'
 import { ip } from 'elysia-ip' // just a glitch pls ignore this
 
 import { rateLimit } from '../src'

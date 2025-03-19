@@ -1,7 +1,7 @@
 import AllocQuickLRU from '@alloc/quick-lru'
 
-import type { Options } from '../@types/Options'
 import type { Context } from '../@types/Context'
+import type { Options } from '../@types/Options'
 import { logger } from './logger'
 
 interface Item {
@@ -65,7 +65,7 @@ export class DefaultContext implements Context {
   }
 
   public async decrement(key: string) {
-    let item = this.store.get(key)
+    const item = this.store.get(key)
 
     // perform actions only if an item is found
     if (item !== undefined) {

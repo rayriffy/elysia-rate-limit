@@ -1,10 +1,10 @@
-import { Elysia } from 'elysia'
 import { swagger } from '@elysiajs/swagger'
+import { Elysia } from 'elysia'
 
 import { rateLimit } from '../src'
 
-import type { Options } from '../src'
 import type { Server } from 'bun'
+import type { Options } from '../src'
 
 let server: Server | null
 

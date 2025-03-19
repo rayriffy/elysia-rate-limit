@@ -1,37 +1,37 @@
-import { $ } from "bun";
-import pc from "picocolors";
-import { build, type Options } from "tsup";
+import { $ } from 'bun'
+import pc from 'picocolors'
+import { type Options, build } from 'tsup'
 
-await $`rm -rf dist`;
+await $`rm -rf dist`
 
 const tsupConfig: Options = {
-  entry: ["src/**/*.ts", "!src/**/*.spec.ts"],
+  entry: ['src/**/*.ts', '!src/**/*.spec.ts'],
   splitting: false,
   sourcemap: false,
   clean: true,
   bundle: true,
-} satisfies Options;
+} satisfies Options
 
 await Promise.all([
   build({
-    outDir: "dist",
-    format: "esm",
-    target: "node20",
+    outDir: 'dist',
+    format: 'esm',
+    target: 'node20',
     cjsInterop: false,
     ...tsupConfig,
   }),
   build({
-    outDir: "dist/cjs",
-    format: "cjs",
-    target: "node20",
+    outDir: 'dist/cjs',
+    format: 'cjs',
+    target: 'node20',
     ...tsupConfig,
   }),
-]);
+])
 
 await $`tsc --project tsconfig.dts.json`.then(() =>
-  console.log(pc.magenta("DTS"), "⚡ Files generated"),
-);
+  console.log(pc.magenta('DTS'), '⚡ Files generated')
+)
 
-await Promise.all([$`cp dist/*.d.ts dist/cjs`]);
+await Promise.all([$`cp dist/*.d.ts dist/cjs`])
 
-process.exit();
+process.exit()
