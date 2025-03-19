@@ -1,5 +1,15 @@
 # elysia-rate-limit
 
+## 4.3.0
+
+### Minor Changes
+
+- 9de6373: change default context to use `@alloc/quick-lru` instead of `lru-cache`
+
+### Patch Changes
+
+- c807a06: reimplement generator to reject edge-case early
+
 ## 4.2.1
 
 ### Patch Changes
