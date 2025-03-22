@@ -1,6 +1,6 @@
 {
   "name": "elysia-rate-limit",
-  "version": "4.2.1",
+  "version": "4.3.0",
   "description": "Rate-limiter for Elysia.js",
   "author": {
     "name": "rayriffy",
@@ -11,7 +11,9 @@
     "type": "git",
     "url": "git+https://github.com/rayriffy/elysia-rate-limit.git"
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "main": "./dist/cjs/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
@@ -29,7 +31,13 @@
     "dev:inject": "DEBUG=* bun run --hot example/multiInstanceInjected.ts",
     "build": "bun run scripts/build.ts"
   },
-  "keywords": ["elysia", "rate", "limit", "ratelimit", "rate-limit"],
+  "keywords": [
+    "elysia",
+    "rate",
+    "limit",
+    "ratelimit",
+    "rate-limit"
+  ],
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org"
