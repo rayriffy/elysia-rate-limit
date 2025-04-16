@@ -35,3 +35,5 @@ jobs:
         run: bun i
       - name: build
         run: bun run build
+      - name: publish
+        run: bunx pkg-pr-new publish
