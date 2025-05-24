@@ -2,34 +2,38 @@
   "name": "elysia-rate-limit",
   "version": "4.3.0",
   "description": "Rate-limiter for Elysia.js",
+  "license": "MIT",
   "author": {
     "name": "rayriffy",
     "url": "https://github.com/rayriffy",
     "email": "mail@rayriffy.com"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/rayriffy/elysia-rate-limit.git"
-  },
-  "files": [
-    "dist"
-  ],
-  "main": "./dist/cjs/index.js",
-  "module": "./dist/index.mjs",
+  "type": "module",
+  "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     "./package.json": "./package.json",
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.mjs",
-      "require": "./dist/cjs/index.js"
+      "import": "./dist/index.js"
     }
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rayriffy/elysia-rate-limit.git"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "dev": "DEBUG=* bun run --hot example/basic.ts",
     "dev:multi": "DEBUG=* bun run --hot example/multiInstance.ts",
     "dev:inject": "DEBUG=* bun run --hot example/multiInstanceInjected.ts",
-    "build": "bun run scripts/build.ts"
+    "build": "tsdown"
   },
   "keywords": [
     "elysia",
@@ -38,11 +42,6 @@
     "ratelimit",
     "rate-limit"
   ],
-  "publishConfig": {
-    "access": "public",
-    "registry": "https://registry.npmjs.org"
-  },
-  "license": "MIT",
   "dependencies": {
     "@alloc/quick-lru": "5.2.0",
     "debug": "4.3.4"
@@ -51,11 +50,12 @@
     "@biomejs/biome": "1.9.4",
     "@changesets/cli": "2.28.1",
     "@elysiajs/swagger": "1.2.2",
+    "@tsconfig/node22": "22.0.2",
     "@types/bun": "1.2.4",
     "@types/debug": "4.1.12",
     "elysia": "1.2.23",
     "elysia-ip": "1.0.8",
-    "tsup": "8.4.0",
+    "tsdown": "0.12.3",
     "typescript": "5.7.3"
   },
   "peerDependencies": {
