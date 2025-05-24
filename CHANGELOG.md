@@ -1,5 +1,11 @@
 # elysia-rate-limit
 
+## 4.4.0
+
+### Minor Changes
+
+- ab26fc3: change package to esm-only, move build toolchain to tsdown
+
 ## 4.3.0
 
 ### Minor Changes
