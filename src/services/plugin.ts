@@ -7,7 +7,7 @@ import { logger } from './logger'
 
 import type { Options } from '../@types/Options'
 
-export const plugin = (userOptions?: Partial<Options>) => {
+export const plugin = function rateLimitPlugin(userOptions?: Partial<Options>) {
   const options: Options = {
     ...defaultOptions,
     ...userOptions,
@@ -19,7 +19,7 @@ export const plugin = (userOptions?: Partial<Options>) => {
   // NOTE:
   // do not make plugin to return async
   // otherwise request will be triggered twice
-  return (app: Elysia) => {
+  return function registerRateLimitPlugin(app: Elysia) {
     const plugin = new Elysia({
       name: 'elysia-rate-limit',
       seed: options.max,
@@ -27,7 +27,7 @@ export const plugin = (userOptions?: Partial<Options>) => {
 
     plugin.onBeforeHandle(
       { as: options.scoping },
-      async ({
+      async function onBeforeHandleRateLimitHandler({
         set,
         request,
         query,
@@ -41,7 +41,7 @@ export const plugin = (userOptions?: Partial<Options>) => {
         // @ts-expect-error somehow qi is being sent from elysia, but there's no type declaration for it
         qi,
         ...rest
-      }) => {
+      }) {
         let clientKey: string | undefined
 
         /**
@@ -152,7 +152,7 @@ export const plugin = (userOptions?: Partial<Options>) => {
 
     plugin.onError(
       { as: options.scoping },
-      async ({
+      async function onErrorRateLimitHandler({
         set,
         request,
         query,
@@ -167,7 +167,7 @@ export const plugin = (userOptions?: Partial<Options>) => {
         qi,
         code,
         ...rest
-      }) => {
+      }) {
         if (!options.countFailedRequest) {
           const clientKey = await options.generator(
             request,
@@ -185,7 +185,7 @@ export const plugin = (userOptions?: Partial<Options>) => {
       }
     )
 
-    plugin.onStop(async () => {
+    plugin.onStop(async function onStopRateLimitHandler() {
       logger('plugin', 'kill signal received')
       await options.context.kill()
     })
