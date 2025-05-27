@@ -27,7 +27,7 @@ export const plugin = (userOptions?: Partial<Options>) => {
 
     plugin.onBeforeHandle(
       { as: options.scoping },
-      async ({
+      async function onBeforeHandleRateLimit({
         set,
         request,
         query,
@@ -41,7 +41,7 @@ export const plugin = (userOptions?: Partial<Options>) => {
         // @ts-expect-error somehow qi is being sent from elysia, but there's no type declaration for it
         qi,
         ...rest
-      }) => {
+      }) {
         let clientKey: string | undefined
 
         /**
@@ -152,7 +152,7 @@ export const plugin = (userOptions?: Partial<Options>) => {
 
     plugin.onError(
       { as: options.scoping },
-      async ({
+      async function onErrorRateLimit({
         set,
         request,
         query,
@@ -167,7 +167,7 @@ export const plugin = (userOptions?: Partial<Options>) => {
         qi,
         code,
         ...rest
-      }) => {
+      }) {
         if (!options.countFailedRequest) {
           const clientKey = await options.generator(
             request,
@@ -185,7 +185,7 @@ export const plugin = (userOptions?: Partial<Options>) => {
       }
     )
 
-    plugin.onStop(async () => {
+    plugin.onStop(async function onStopRateLimit() {
       logger('plugin', 'kill signal received')
       await options.context.kill()
     })
