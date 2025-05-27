@@ -1,6 +1,6 @@
 {
   "name": "elysia-rate-limit",
-  "version": "4.3.0",
+  "version": "4.4.0",
   "description": "Rate-limiter for Elysia.js",
   "license": "MIT",
   "author": {

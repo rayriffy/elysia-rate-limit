@@ -1,5 +1,15 @@
 # elysia-rate-limit
 
+## 4.4.0
+
+### Minor Changes
+
+- ab26fc3: change package to esm-only, move build toolchain to tsdown
+
+### Patch Changes
+
+- 41680f1: Use named functions instead of anonymous arrows for better tracing
+
 ## 4.3.0
 
 ### Minor Changes
