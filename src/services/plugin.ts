@@ -43,7 +43,7 @@ export const plugin = function rateLimitPlugin(userOptions?: Partial<Options>) {
         ...rest
       }) {
         let clientKey: string | undefined
-        const completeRequest = {...request, cookie};
+        const enhancedRequest = Object.defineProperty(request, 'cookie', {value: cookie});
 
         /**
          * if a skip option has two parameters,
@@ -53,13 +53,13 @@ export const plugin = function rateLimitPlugin(userOptions?: Partial<Options>) {
          */
         if (options.skip.length >= 2)
           clientKey = await options.generator(
-            completeRequest,
+            enhancedRequest,
             options.injectServer?.() ?? app.server,
             rest
           )
 
         // if decided to skip, then do nothing and let the app continue
-        if ((await options.skip(completeRequest, clientKey)) === false) {
+        if ((await options.skip(enhancedRequest, clientKey)) === false) {
           /**
            * if a skip option has less than two parameters,
            * that's mean clientKey does not have a key yet
@@ -170,9 +170,9 @@ export const plugin = function rateLimitPlugin(userOptions?: Partial<Options>) {
         ...rest
       }) {
         if (!options.countFailedRequest) {
-          const completeRequest = {...request, cookie};
+          const enhancedRequest = Object.defineProperty(request, 'cookie', {value: cookie});
           const clientKey = await options.generator(
-            completeRequest,
+            enhancedRequest,
             options.injectServer?.() ?? app.server,
             rest
           )
