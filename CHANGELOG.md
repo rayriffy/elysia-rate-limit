@@ -1,5 +1,11 @@
 # elysia-rate-limit
 
+## 4.4.2
+
+### Patch Changes
+
+- 2b99760: fix undeclared variable completeRequest
+
 ## 4.4.1
 
 ### Patch Changes
