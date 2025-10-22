@@ -29,7 +29,10 @@ export interface Options {
   // exposed functions for writing a custom script to skip counting i.e.,
   // not counting rate limit for some requests
   // (Default: always return false)
-  skip: (req: Request & {cookie: Record<string, Cookie<string>>}, key?: string) => boolean | Promise<boolean>
+  skip: (
+    req: Request & { cookie: Record<string, Cookie<string>> },
+    key?: string
+  ) => boolean | Promise<boolean>
 
   // an explicit way to inject server instance to generator function
   // uses this as last resort only

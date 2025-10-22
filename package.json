@@ -26,22 +26,14 @@
     "access": "public",
     "registry": "https://registry.npmjs.org"
   },
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "scripts": {
     "dev": "DEBUG=* bun run --hot example/basic.ts",
     "dev:multi": "DEBUG=* bun run --hot example/multiInstance.ts",
     "dev:inject": "DEBUG=* bun run --hot example/multiInstanceInjected.ts",
     "build": "tsdown"
   },
-  "keywords": [
-    "elysia",
-    "rate",
-    "limit",
-    "ratelimit",
-    "rate-limit"
-  ],
+  "keywords": ["elysia", "rate", "limit", "ratelimit", "rate-limit"],
   "dependencies": {
     "@alloc/quick-lru": "5.2.0",
     "debug": "4.3.4"
