@@ -8,7 +8,8 @@ export interface Options {
   duration: number
 
   // Maximum of requests per specified duration (Default: 10)
-  max: number
+  // Can be a static number or a function that returns the max based on the key and request
+  max: number | ((key: string, request: Request & { cookie: Record<string, Cookie<string>> }) => number | Promise<number>)
 
   // Object to response when rate-limit reached
   errorResponse: string | Response | Error

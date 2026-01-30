@@ -50,11 +50,55 @@ Also used in the `Retry-After` header when the limit is reached.
 
 ### max
 
-`number`
+`number | ((key: string, request: Request & { cookie: Record<string, Cookie<string>> }) => number | Promise<number>)`
 
 Default: `10`
 
 Maximum of request to be allowed during 1 `duration` timeframe.
+
+Can be a static number or a dynamic function that returns the max based on the client key and request. The function receives:
+- `key`: The generated client key (e.g., IP address)
+- `request`: The request object with cookies attached
+
+<details>
+<summary>Example for static <code>max</code></summary>
+
+```ts
+new Elysia().use(
+  rateLimit({
+    max: 100, // Allow 100 requests per duration
+  })
+)
+```
+</details>
+
+<details>
+<summary>Example for dynamic <code>max</code></summary>
+
+```ts
+new Elysia().use(
+  rateLimit({
+    max: (key, request) => {
+      // Give premium users higher limits
+      const isPremium = request.headers.get('X-User-Tier') === 'premium'
+      return isPremium ? 1000 : 100
+    },
+  })
+)
+```
+
+```ts
+new Elysia().use(
+  rateLimit({
+    max: async (key, request) => {
+      // Fetch user tier from database
+      const userTier = await getUserTier(key)
+      return userTier === 'premium' ? 1000 : 100
+    },
+  })
+)
+```
+</details>
 
 ### errorResponse
 

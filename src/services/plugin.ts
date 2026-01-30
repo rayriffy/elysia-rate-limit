@@ -1,4 +1,4 @@
-import Elysia from 'elysia'
+import Elysia, { type Cookie } from 'elysia'
 
 import { defaultOptions } from '../constants/defaultOptions'
 import { DefaultContext } from './defaultContext'
@@ -6,6 +6,7 @@ import { DefaultContext } from './defaultContext'
 import { logger } from './logger'
 
 import type { Options } from '../@types/Options'
+import type { ExtendedRequest } from '../@types/Server'
 
 export const plugin = function rateLimitPlugin(userOptions?: Partial<Options>) {
   const options: Options = {
@@ -20,9 +21,10 @@ export const plugin = function rateLimitPlugin(userOptions?: Partial<Options>) {
   // do not make plugin to return async
   // otherwise request will be triggered twice
   return function registerRateLimitPlugin(app: Elysia) {
+    const seedValue = typeof options.max === 'function' ? 0 : options.max
     const plugin = new Elysia({
       name: 'elysia-rate-limit',
-      seed: options.max,
+      seed: seedValue,
     })
 
     plugin.onBeforeHandle(
@@ -45,7 +47,7 @@ export const plugin = function rateLimitPlugin(userOptions?: Partial<Options>) {
         let clientKey: string | undefined
         const enhancedRequest = Object.defineProperty(request, 'cookie', {
           value: cookie,
-        })
+        }) as ExtendedRequest
 
         /**
          * if a skip option has two parameters,
@@ -79,10 +81,15 @@ export const plugin = function rateLimitPlugin(userOptions?: Partial<Options>) {
             clientKey!
           )
 
+          // Resolve max value (static or dynamic)
+          const maxLimit = typeof options.max === 'function'
+            ? await options.max(clientKey!, enhancedRequest)
+            : options.max
+
           const payload = {
-            limit: options.max,
+            limit: maxLimit,
             current: count,
-            remaining: Math.max(options.max - count, 0),
+            remaining: Math.max(maxLimit - count, 0),
             nextReset,
           }
 
@@ -93,7 +100,7 @@ export const plugin = function rateLimitPlugin(userOptions?: Partial<Options>) {
           )
 
           const builtHeaders: Record<string, string> = {
-            'RateLimit-Limit': String(options.max),
+            'RateLimit-Limit': String(maxLimit),
             'RateLimit-Remaining': String(payload.remaining),
             'RateLimit-Reset': String(reset),
           }
@@ -145,8 +152,8 @@ export const plugin = function rateLimitPlugin(userOptions?: Partial<Options>) {
             'plugin',
             'clientKey %s passed through with %d/%d request used (resetting in %d seconds)',
             clientKey,
-            options.max - payload.remaining,
-            options.max,
+            maxLimit - payload.remaining,
+            maxLimit,
             reset
           )
         }
@@ -174,7 +181,7 @@ export const plugin = function rateLimitPlugin(userOptions?: Partial<Options>) {
         if (!options.countFailedRequest) {
           const enhancedRequest = Object.defineProperty(request, 'cookie', {
             value: cookie,
-          })
+          }) as ExtendedRequest
           const clientKey = await options.generator(
             enhancedRequest,
             options.injectServer?.() ?? app.server,
