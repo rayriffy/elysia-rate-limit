@@ -50,7 +50,7 @@ Also used in the `Retry-After` header when the limit is reached.
 
 ### max
 
-`number | ((key: string, request: Request & { cookie: Record<string, Cookie<string>> }) => number | Promise<number>)`
+`number | ((key: string, request: ExtendedRequest) => number | Promise<number>)`
 
 Default: `10`
 

@@ -1,7 +1,6 @@
-import type { Cookie } from 'elysia'
 import type { Context } from './Context'
 import type { Generator } from './Generator'
-import type { Server } from './Server.ts'
+import type { ExtendedRequest, Server } from './Server.ts'
 
 export interface Options {
   // The duration for plugin to remember the requests (Default: 60000ms)
@@ -9,7 +8,7 @@ export interface Options {
 
   // Maximum of requests per specified duration (Default: 10)
   // Can be a static number or a function that returns the max based on the key and request
-  max: number | ((key: string, request: Request & { cookie: Record<string, Cookie<string>> }) => number | Promise<number>)
+  max: number | ((key: string, request: ExtendedRequest) => number | Promise<number>)
 
   // Object to response when rate-limit reached
   errorResponse: string | Response | Error
@@ -31,7 +30,7 @@ export interface Options {
   // not counting rate limit for some requests
   // (Default: always return false)
   skip: (
-    req: Request & { cookie: Record<string, Cookie<string>> },
+    req: ExtendedRequest,
     key?: string
   ) => boolean | Promise<boolean>
 

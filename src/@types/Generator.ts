@@ -1,8 +1,8 @@
-import type { MaybePromise, Cookie } from 'elysia'
-import type { Server } from './Server.ts'
+import type { MaybePromise } from 'elysia'
+import type { ExtendedRequest, Server } from './Server.ts'
 
 export type Generator<T extends object = {}> = (
-  request: Request & { cookie: Record<string, Cookie<string>> },
+  request: ExtendedRequest,
   server: Server | null,
   derived: T
 ) => MaybePromise<string>
