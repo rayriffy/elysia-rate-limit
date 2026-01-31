@@ -24,8 +24,7 @@
   },
   "publishConfig": {
     "access": "public",
-    "registry": "https://registry.npmjs.org",
-    "provenance": true
+    "registry": "https://registry.npmjs.org"
   },
   "files": [
     "dist"
