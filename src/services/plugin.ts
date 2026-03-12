@@ -64,111 +64,99 @@ export const plugin = function rateLimitPlugin(userOptions?: Partial<Options>) {
 
     plugin.onBeforeHandle(
       { as: options.scoping },
-      function onBeforeHandleRateLimitHandler({
+      async function onBeforeHandleRateLimitHandler({
         set,
         request,
         cookie,
       }) {
-        const derived = buildDerived(arguments[0] as Record<string, unknown>)
+        const derived = buildDerived(arguments[0])
 
-        return (async () => {
-          let clientKey: string | undefined
-          const enhancedRequest = Object.defineProperty(request, 'cookie', {
-            value: cookie,
-          }) as ExtendedRequest
+        let clientKey: string | undefined
+        const enhancedRequest = Object.defineProperty(request, 'cookie', {
+          value: cookie,
+        }) as ExtendedRequest
 
+        /**
+         * if a skip option has two parameters,
+         * then we will generate clientKey ahead of time.
+         * this is made to skip generating key unnecessary if only check for request
+         * and saving some cpu consumption when actually skipped
+         */
+        if (options.skip.length >= 2)
+          clientKey = await options.generator(
+            enhancedRequest,
+            options.injectServer?.() ?? app.server,
+            derived
+          )
+
+        // if decided to skip, then do nothing and let the app continue
+        if ((await options.skip(enhancedRequest, clientKey)) === false) {
           /**
-           * if a skip option has two parameters,
-           * then we will generate clientKey ahead of time.
-           * this is made to skip generating key unnecessary if only check for request
-           * and saving some cpu consumption when actually skipped
+           * if a skip option has less than two parameters,
+           * that's mean clientKey does not have a key yet
+           * then generate one
            */
-          if (options.skip.length >= 2)
+          if (options.skip.length < 2)
             clientKey = await options.generator(
               enhancedRequest,
               options.injectServer?.() ?? app.server,
               derived
             )
 
-          // if decided to skip, then do nothing and let the app continue
-          if ((await options.skip(enhancedRequest, clientKey)) === false) {
-            /**
-             * if a skip option has less than two parameters,
-             * that's mean clientKey does not have a key yet
-             * then generate one
-             */
-            if (options.skip.length < 2)
-              clientKey = await options.generator(
-                enhancedRequest,
-                options.injectServer?.() ?? app.server,
-                derived
-              )
+          const { count, nextReset } = await options.context.increment(
+            // biome-ignore lint/style/noNonNullAssertion: <explanation>
+            clientKey!
+          )
 
-            const { count, nextReset } = await options.context.increment(
-              // biome-ignore lint/style/noNonNullAssertion: <explanation>
-              clientKey!
+          // Resolve max value (static or dynamic)
+          const maxLimit = typeof options.max === 'function'
+            ? await options.max(clientKey!, enhancedRequest)
+            : options.max
+
+          const payload = {
+            limit: maxLimit,
+            current: count,
+            remaining: Math.max(maxLimit - count, 0),
+            nextReset,
+          }
+
+          // set standard headers
+          const reset = Math.max(
+            0,
+            Math.ceil((nextReset.getTime() - Date.now()) / 1000)
+          )
+
+          const builtHeaders: Record<string, string> = {
+            'RateLimit-Limit': String(maxLimit),
+            'RateLimit-Remaining': String(payload.remaining),
+            'RateLimit-Reset': String(reset),
+          }
+
+          // reject if limit were reached
+          if (payload.current >= payload.limit + 1) {
+            logger(
+              'plugin',
+              'rate limit exceeded for clientKey: %s (resetting in %d seconds)',
+              clientKey,
+              reset
             )
 
-            // Resolve max value (static or dynamic)
-            const maxLimit = typeof options.max === 'function'
-              ? await options.max(clientKey!, enhancedRequest)
-              : options.max
-
-            const payload = {
-              limit: maxLimit,
-              current: count,
-              remaining: Math.max(maxLimit - count, 0),
-              nextReset,
-            }
-
-            // set standard headers
-            const reset = Math.max(
-              0,
-              Math.ceil((nextReset.getTime() - Date.now()) / 1000)
+            builtHeaders['Retry-After'] = String(
+              Math.ceil(options.duration / 1000)
             )
 
-            const builtHeaders: Record<string, string> = {
-              'RateLimit-Limit': String(maxLimit),
-              'RateLimit-Remaining': String(payload.remaining),
-              'RateLimit-Reset': String(reset),
-            }
-
-            // reject if limit were reached
-            if (payload.current >= payload.limit + 1) {
-              logger(
-                'plugin',
-                'rate limit exceeded for clientKey: %s (resetting in %d seconds)',
-                clientKey,
-                reset
-              )
-
-              builtHeaders['Retry-After'] = String(
-                Math.ceil(options.duration / 1000)
-              )
-
-              if (options.errorResponse instanceof Error)
-                throw options.errorResponse
-              if (options.errorResponse instanceof Response) {
-                // duplicate the response to avoid mutation
-                const clonedResponse = options.errorResponse.clone()
-
-                // append headers
-                if (options.headers)
-                  for (const [key, value] of Object.entries(builtHeaders))
-                    clonedResponse.headers.set(key, value)
-
-                return clonedResponse
-              }
+            if (options.errorResponse instanceof Error)
+              throw options.errorResponse
+            if (options.errorResponse instanceof Response) {
+              // duplicate the response to avoid mutation
+              const clonedResponse = options.errorResponse.clone()
 
               // append headers
               if (options.headers)
                 for (const [key, value] of Object.entries(builtHeaders))
-                  set.headers[key] = value
+                  clonedResponse.headers.set(key, value)
 
-              // set default status code
-              set.status = 429
-
-              return options.errorResponse
+              return clonedResponse
             }
 
             // append headers
@@ -176,46 +164,54 @@ export const plugin = function rateLimitPlugin(userOptions?: Partial<Options>) {
               for (const [key, value] of Object.entries(builtHeaders))
                 set.headers[key] = value
 
-            logger(
-              'plugin',
-              'clientKey %s passed through with %d/%d request used (resetting in %d seconds)',
-              clientKey,
-              maxLimit - payload.remaining,
-              maxLimit,
-              reset
-            )
+            // set default status code
+            set.status = 429
+
+            return options.errorResponse
           }
-        })()
+
+          // append headers
+          if (options.headers)
+            for (const [key, value] of Object.entries(builtHeaders))
+              set.headers[key] = value
+
+          logger(
+            'plugin',
+            'clientKey %s passed through with %d/%d request used (resetting in %d seconds)',
+            clientKey,
+            maxLimit - payload.remaining,
+            maxLimit,
+            reset
+          )
+        }
       }
     )
 
     plugin.onError(
       { as: options.scoping },
-      function onErrorRateLimitHandler({
+      async function onErrorRateLimitHandler({
         request,
         cookie,
       }) {
-        const derived = buildDerived(arguments[0] as Record<string, unknown>)
+        const derived = buildDerived(arguments[0])
 
-        return (async () => {
-          if (!options.countFailedRequest) {
-            const enhancedRequest = Object.defineProperty(request, 'cookie', {
-              value: cookie,
-            }) as ExtendedRequest
-            const clientKey = await options.generator(
-              enhancedRequest,
-              options.injectServer?.() ?? app.server,
-              derived
-            )
+        if (!options.countFailedRequest) {
+          const enhancedRequest = Object.defineProperty(request, 'cookie', {
+            value: cookie,
+          }) as ExtendedRequest
+          const clientKey = await options.generator(
+            enhancedRequest,
+            options.injectServer?.() ?? app.server,
+            derived
+          )
 
-            logger(
-              'plugin',
-              'request failed for clientKey: %s, refunding',
-              clientKey
-            )
-            await options.context.decrement(clientKey)
-          }
-        })()
+          logger(
+            'plugin',
+            'request failed for clientKey: %s, refunding',
+            clientKey
+          )
+          await options.context.decrement(clientKey)
+        }
       }
     )
 
