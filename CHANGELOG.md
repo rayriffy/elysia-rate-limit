@@ -1,5 +1,11 @@
 # elysia-rate-limit
 
+## 4.5.1
+
+### Patch Changes
+
+- b8acb32: Fix unintended eager body parsing caused by destructuring `body` and using rest spread in lifecycle handler signatures. Elysia's static analyzer (sucrose) inspects function parameters to infer context dependencies, which caused the request body to be parsed for all routes — breaking routes that need raw body access (e.g. Stripe webhook signature verification). Context properties are now accessed at runtime via a helper function, invisible to sucrose's static analysis.
+
 ## 4.5.0
 
 ### Minor Changes
