@@ -1,4 +1,4 @@
-import Elysia, { type Cookie } from 'elysia'
+import Elysia from 'elysia'
 
 import { defaultOptions } from '../constants/defaultOptions'
 import { DefaultContext } from './defaultContext'
@@ -7,6 +7,26 @@ import { logger } from './logger'
 
 import type { Options } from '../@types/Options'
 import type { ExtendedRequest } from '../@types/Server'
+
+// Properties that belong to the core Elysia context and should not be
+// forwarded as "derived" values to the generator function.
+const elysiaContextKeys = new Set([
+  'body', 'query', 'params', 'headers', 'cookie',
+  'set', 'path', 'request', 'store', 'route', 'error',
+  'qi', 'redirect', 'server',
+])
+
+const buildDerived = (context: Record<string, unknown>) => {
+  const derived: Record<string, unknown> = {}
+
+  for (const key of Object.keys(context)) {
+    if (!elysiaContextKeys.has(key)) {
+      derived[key] = context[key]
+    }
+  }
+
+  return derived
+}
 
 export const plugin = function rateLimitPlugin(userOptions?: Partial<Options>) {
   const options: Options = {
@@ -27,23 +47,30 @@ export const plugin = function rateLimitPlugin(userOptions?: Partial<Options>) {
       seed: seedValue,
     })
 
+    // IMPORTANT: The lifecycle hooks below intentionally avoid destructuring
+    // `body`, `query`, `params`, `headers`, or using `...rest` in the
+    // parameter list. Elysia's static analyzer (sucrose) inspects the
+    // function signature to infer which context properties are needed, and
+    // referencing `body` (or spreading into a rest param that gets passed to
+    // another function) causes Elysia to eagerly parse the request body for
+    // ALL routes — including routes that need to read the raw body via
+    // `request.text()` (e.g. Stripe webhook signature verification).
+    // See: https://github.com/elysiajs/elysia/blob/main/src/sucrose.ts
+    //
+    // To preserve backward compatibility with custom generators that read
+    // derived context (e.g. `elysia-ip`), we capture the full context via
+    // a wrapper function and use `buildDerived` to extract only non-core
+    // properties at runtime — invisible to sucrose's static analysis.
+
     plugin.onBeforeHandle(
       { as: options.scoping },
       async function onBeforeHandleRateLimitHandler({
         set,
         request,
-        query,
-        path,
-        store,
         cookie,
-        error,
-        body,
-        params,
-        headers,
-        // @ts-expect-error somehow qi is being sent from elysia, but there's no type declaration for it
-        qi,
-        ...rest
       }) {
+        const derived = buildDerived(arguments[0])
+
         let clientKey: string | undefined
         const enhancedRequest = Object.defineProperty(request, 'cookie', {
           value: cookie,
@@ -59,7 +86,7 @@ export const plugin = function rateLimitPlugin(userOptions?: Partial<Options>) {
           clientKey = await options.generator(
             enhancedRequest,
             options.injectServer?.() ?? app.server,
-            rest
+            derived
           )
 
         // if decided to skip, then do nothing and let the app continue
@@ -73,7 +100,7 @@ export const plugin = function rateLimitPlugin(userOptions?: Partial<Options>) {
             clientKey = await options.generator(
               enhancedRequest,
               options.injectServer?.() ?? app.server,
-              rest
+              derived
             )
 
           const { count, nextReset } = await options.context.increment(
@@ -163,21 +190,11 @@ export const plugin = function rateLimitPlugin(userOptions?: Partial<Options>) {
     plugin.onError(
       { as: options.scoping },
       async function onErrorRateLimitHandler({
-        set,
         request,
-        query,
-        path,
-        store,
         cookie,
-        error,
-        body,
-        params,
-        headers,
-        // @ts-expect-error somehow qi is being sent from elysia, but there's no type declaration for it
-        qi,
-        code,
-        ...rest
       }) {
+        const derived = buildDerived(arguments[0])
+
         if (!options.countFailedRequest) {
           const enhancedRequest = Object.defineProperty(request, 'cookie', {
             value: cookie,
@@ -185,7 +202,7 @@ export const plugin = function rateLimitPlugin(userOptions?: Partial<Options>) {
           const clientKey = await options.generator(
             enhancedRequest,
             options.injectServer?.() ?? app.server,
-            rest
+            derived
           )
 
           logger(
