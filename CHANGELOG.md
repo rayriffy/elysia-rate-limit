@@ -1,5 +1,11 @@
 # elysia-rate-limit
 
+## 4.6.0
+
+### Minor Changes
+
+- dc24ad4: performance improvements
+
 ## 4.5.1
 
 ### Patch Changes
