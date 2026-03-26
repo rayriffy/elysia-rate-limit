@@ -2,6 +2,7 @@ import Elysia from 'elysia'
 
 import { defaultOptions } from '../constants/defaultOptions'
 import { DefaultContext } from './defaultContext'
+import { defaultKeyGenerator } from './defaultKeyGenerator'
 
 import { logger } from './logger'
 
@@ -69,12 +70,12 @@ export const plugin = function rateLimitPlugin(userOptions?: Partial<Options>) {
         request,
         cookie,
       }) {
-        const derived = buildDerived(arguments[0])
-
         let clientKey: string | undefined
-        const enhancedRequest = Object.defineProperty(request, 'cookie', {
-          value: cookie,
-        }) as ExtendedRequest
+
+        // attach cookie to request
+        // @ts-expect-error - fast path
+        request.cookie = cookie
+        const enhancedRequest = request as ExtendedRequest
 
         /**
          * if a skip option has two parameters,
@@ -86,7 +87,9 @@ export const plugin = function rateLimitPlugin(userOptions?: Partial<Options>) {
           clientKey = await options.generator(
             enhancedRequest,
             options.injectServer?.() ?? app.server,
-            derived
+            options.generator === defaultKeyGenerator
+              ? {}
+              : buildDerived(arguments[0])
           )
 
         // if decided to skip, then do nothing and let the app continue
@@ -100,7 +103,9 @@ export const plugin = function rateLimitPlugin(userOptions?: Partial<Options>) {
             clientKey = await options.generator(
               enhancedRequest,
               options.injectServer?.() ?? app.server,
-              derived
+              options.generator === defaultKeyGenerator
+                ? {}
+                : buildDerived(arguments[0])
             )
 
           const { count, nextReset } = await options.context.increment(
@@ -126,12 +131,6 @@ export const plugin = function rateLimitPlugin(userOptions?: Partial<Options>) {
             Math.ceil((nextReset.getTime() - Date.now()) / 1000)
           )
 
-          const builtHeaders: Record<string, string> = {
-            'RateLimit-Limit': String(maxLimit),
-            'RateLimit-Remaining': String(payload.remaining),
-            'RateLimit-Reset': String(reset),
-          }
-
           // reject if limit were reached
           if (payload.current >= payload.limit + 1) {
             logger(
@@ -141,10 +140,6 @@ export const plugin = function rateLimitPlugin(userOptions?: Partial<Options>) {
               reset
             )
 
-            builtHeaders['Retry-After'] = String(
-              Math.ceil(options.duration / 1000)
-            )
-
             if (options.errorResponse instanceof Error)
               throw options.errorResponse
             if (options.errorResponse instanceof Response) {
@@ -152,17 +147,23 @@ export const plugin = function rateLimitPlugin(userOptions?: Partial<Options>) {
               const clonedResponse = options.errorResponse.clone()
 
               // append headers
-              if (options.headers)
-                for (const [key, value] of Object.entries(builtHeaders))
-                  clonedResponse.headers.set(key, value)
+              if (options.headers) {
+                clonedResponse.headers.set('RateLimit-Limit', String(maxLimit))
+                clonedResponse.headers.set('RateLimit-Remaining', String(payload.remaining))
+                clonedResponse.headers.set('RateLimit-Reset', String(reset))
+                clonedResponse.headers.set('Retry-After', String(Math.ceil(options.duration / 1000)))
+              }
 
               return clonedResponse
             }
 
             // append headers
-            if (options.headers)
-              for (const [key, value] of Object.entries(builtHeaders))
-                set.headers[key] = value
+            if (options.headers) {
+              set.headers['RateLimit-Limit'] = String(maxLimit)
+              set.headers['RateLimit-Remaining'] = String(payload.remaining)
+              set.headers['RateLimit-Reset'] = String(reset)
+              set.headers['Retry-After'] = String(Math.ceil(options.duration / 1000))
+            }
 
             // set default status code
             set.status = 429
@@ -171,9 +172,11 @@ export const plugin = function rateLimitPlugin(userOptions?: Partial<Options>) {
           }
 
           // append headers
-          if (options.headers)
-            for (const [key, value] of Object.entries(builtHeaders))
-              set.headers[key] = value
+          if (options.headers) {
+            set.headers['RateLimit-Limit'] = String(maxLimit)
+            set.headers['RateLimit-Remaining'] = String(payload.remaining)
+            set.headers['RateLimit-Reset'] = String(reset)
+          }
 
           logger(
             'plugin',
@@ -193,16 +196,18 @@ export const plugin = function rateLimitPlugin(userOptions?: Partial<Options>) {
         request,
         cookie,
       }) {
-        const derived = buildDerived(arguments[0])
-
         if (!options.countFailedRequest) {
-          const enhancedRequest = Object.defineProperty(request, 'cookie', {
-            value: cookie,
-          }) as ExtendedRequest
+          // attach cookie to request
+          // @ts-expect-error - fast path
+          request.cookie = cookie
+          const enhancedRequest = request as ExtendedRequest
+          
           const clientKey = await options.generator(
             enhancedRequest,
             options.injectServer?.() ?? app.server,
-            derived
+            options.generator === defaultKeyGenerator
+              ? {}
+              : buildDerived(arguments[0])
           )
 
           logger(

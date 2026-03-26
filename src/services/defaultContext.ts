@@ -34,11 +34,11 @@ export class DefaultContext implements Context {
   }
 
   public async increment(key: string) {
-    const now = new Date()
+    const now = Date.now()
     let item = this.store.get(key)
 
     // if item is not found or expired, then issue a new one
-    if (item === undefined || item.nextReset < now) {
+    if (item === undefined || item.nextReset.getTime() < now) {
       logger(
         `context:${this.id}`,
         'created new item for key: %s (reason: %s)',
@@ -48,7 +48,7 @@ export class DefaultContext implements Context {
 
       item = {
         count: 1,
-        nextReset: new Date(now.getTime() + this.duration),
+        nextReset: new Date(now + this.duration),
       }
     }
     // otherwise, increment the count
