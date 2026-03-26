@@ -8,7 +8,7 @@ To run the benchmark, you can use the following command:
 bun run benchmark/index.ts
 ```
 
-Here's the current benchmark results:
+Here's the current benchmark results, in theory when plugin were used the performance should be slower than without plugin. So our benchmark target is to reduce the performance difference as much as possible.
 
 ```shell
 clk: ~4.21 GHz
