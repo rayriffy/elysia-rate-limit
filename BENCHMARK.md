@@ -1,4 +1,16 @@
+# Benchmark Results
+
+We do have a benchmark script that you can run to see the results.
+
+To run the benchmark, you can use the following command:
+
+```bash
+bun run benchmark/index.ts
 ```
+
+Here's the current benchmark results:
+
+```shell
 clk: ~4.21 GHz
 cpu: Apple M4
 runtime: bun 1.3.11 (arm64-darwin)
