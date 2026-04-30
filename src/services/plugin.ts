@@ -195,7 +195,104 @@ export const plugin = function rateLimitPlugin(userOptions?: Partial<Options>) {
       async function onErrorRateLimitHandler({
         request,
         cookie,
+        set,
       }) {
+        const context = arguments[0] as Record<string, any>
+        const error = context.error as unknown
+        const code = context.code as unknown
+
+        const errorStatus = typeof error === 'object' && error !== null
+          ? (error as any).status ?? (error as any).statusCode
+          : undefined
+        const currentStatus = typeof set?.status === 'number' ? set.status : undefined
+        const isNotFound = code === 'NOT_FOUND' || currentStatus === 404 || errorStatus === 404
+
+        if (isNotFound) {
+          // attach cookie to request
+          // @ts-expect-error - fast path
+          request.cookie = cookie
+          const enhancedRequest = request as ExtendedRequest
+
+          const clientKey = await options.generator(
+            enhancedRequest,
+            options.injectServer?.() ?? app.server,
+            options.generator === defaultKeyGenerator
+              ? {}
+              : buildDerived(arguments[0])
+          )
+
+          if ((await options.skip(enhancedRequest, clientKey)) === false) {
+            const { count, nextReset } = await options.context.increment(clientKey)
+
+            const maxLimit = typeof options.max === 'function'
+              ? await options.max(clientKey, enhancedRequest)
+              : options.max
+
+            const payload = {
+              limit: maxLimit,
+              current: count,
+              remaining: Math.max(maxLimit - count, 0),
+              nextReset,
+            }
+
+            const reset = Math.max(
+              0,
+              Math.ceil((nextReset.getTime() - Date.now()) / 1000)
+            )
+
+            if (payload.current >= payload.limit + 1) {
+              logger(
+                'plugin',
+                'rate limit exceeded for clientKey: %s (resetting in %d seconds)',
+                clientKey,
+                reset
+              )
+
+              if (options.errorResponse instanceof Error)
+                throw options.errorResponse
+              if (options.errorResponse instanceof Response) {
+                const clonedResponse = options.errorResponse.clone()
+
+                if (options.headers) {
+                  clonedResponse.headers.set('RateLimit-Limit', String(maxLimit))
+                  clonedResponse.headers.set('RateLimit-Remaining', String(payload.remaining))
+                  clonedResponse.headers.set('RateLimit-Reset', String(reset))
+                  clonedResponse.headers.set('Retry-After', String(Math.ceil(options.duration / 1000)))
+                }
+
+                return clonedResponse
+              }
+
+              if (options.headers) {
+                set.headers['RateLimit-Limit'] = String(maxLimit)
+                set.headers['RateLimit-Remaining'] = String(payload.remaining)
+                set.headers['RateLimit-Reset'] = String(reset)
+                set.headers['Retry-After'] = String(Math.ceil(options.duration / 1000))
+              }
+
+              set.status = 429
+              return options.errorResponse
+            }
+
+            if (options.headers) {
+              set.headers['RateLimit-Limit'] = String(maxLimit)
+              set.headers['RateLimit-Remaining'] = String(payload.remaining)
+              set.headers['RateLimit-Reset'] = String(reset)
+            }
+
+            logger(
+              'plugin',
+              'clientKey %s passed through with %d/%d request used (resetting in %d seconds)',
+              clientKey,
+              maxLimit - payload.remaining,
+              maxLimit,
+              reset
+            )
+          }
+
+          return
+        }
+
         if (!options.countFailedRequest) {
           // attach cookie to request
           // @ts-expect-error - fast path
