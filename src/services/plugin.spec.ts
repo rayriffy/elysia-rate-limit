@@ -106,4 +106,18 @@ describe('rate limit plugin', () => {
     expect(receivedDerived.length).toBeGreaterThan(0)
     expect(receivedDerived[0].customProp).toBe('hello-from-plugin')
   })
+
+  it('should rate limit not found routes', async () => {
+    const app = new Elysia()
+      .use(plugin({ max: 2, duration: 60000, scoping: 'global' }))
+      .get('/known', () => 'ok')
+
+    const r1 = await app.handle(new Request('http://localhost/unknown-route'))
+    const r2 = await app.handle(new Request('http://localhost/unknown-route'))
+    const r3 = await app.handle(new Request('http://localhost/unknown-route'))
+
+    expect(r1.status).toBe(404)
+    expect(r2.status).toBe(404)
+    expect(r3.status).toBe(429)
+  })
 })
