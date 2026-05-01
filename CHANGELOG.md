@@ -1,5 +1,11 @@
 # elysia-rate-limit
 
+## 4.6.1
+
+### Patch Changes
+
+- a35af16: extend rate limiting to 404 routes
+
 ## 4.6.0
 
 ### Minor Changes
