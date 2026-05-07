@@ -107,4 +107,37 @@ describe('DefaultContext', () => {
 
     await shortContext.kill()
   })
+
+  it('should use per-call duration when provided to increment', async () => {
+    const ctx = new DefaultContext()
+    ctx.init({ ...defaultOptions, duration: 60000 })
+
+    const key = 'test-key-9'
+    const shortDuration = 50 // ms
+
+    // Create item with short duration via per-call override
+    await ctx.increment(key, shortDuration)
+
+    // Wait for the short duration to expire
+    await new Promise<void>(resolve => setTimeout(resolve, 60))
+
+    // Next increment should create a fresh item because the window expired
+    const result = await ctx.increment(key, shortDuration)
+    expect(result.count).toBe(1)
+
+    await ctx.kill()
+  })
+
+  it('should throw when duration is dynamic but no per-call duration is provided to increment', async () => {
+    const ctx = new DefaultContext()
+    ctx.init({ ...defaultOptions, duration: () => 60000 })
+
+    const key = 'test-key-10'
+
+    await expect(ctx.increment(key)).rejects.toThrow(
+      'DefaultContext.increment: duration is required when options.duration is a function but no per-call duration was provided'
+    )
+
+    await ctx.kill()
+  })
 })

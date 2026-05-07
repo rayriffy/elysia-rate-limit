@@ -4,7 +4,8 @@ import type { ExtendedRequest, Server } from './Server.ts'
 
 export interface Options {
   // The duration for plugin to remember the requests (Default: 60000ms)
-  duration: number
+  // Can be a static number or a function that returns the duration based on the key and request
+  duration: number | ((key: string, request: ExtendedRequest) => number | Promise<number>)
 
   // Maximum of requests per specified duration (Default: 10)
   // Can be a static number or a function that returns the max based on the key and request

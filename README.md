@@ -41,12 +41,58 @@ new Elysia().use(rateLimit()).listen(3000)
 
 ### duration
 
-`number`
+`number | ((key: string, request: ExtendedRequest) => number | Promise<number>)`
 
 Default: `60000`
 
 Duration for requests to be remembered in **milliseconds**.
 Also used in the `Retry-After` header when the limit is reached.
+
+Can be a static number or a dynamic function that returns the duration based on the client key and request. The function receives:
+- `key`: The generated client key (e.g., IP address)
+- `request`: The request object with cookies attached
+
+> **Note:** The dynamic value is resolved **when a new window opens** for a given key. Changing the duration mid-window has no effect on the current window — it will apply on the next window.
+
+<details>
+<summary>Example for static <code>duration</code></summary>
+
+```ts
+new Elysia().use(
+  rateLimit({
+    duration: 60_000, // 1-minute window
+  })
+)
+```
+</details>
+
+<details>
+<summary>Example for dynamic <code>duration</code></summary>
+
+```ts
+new Elysia().use(
+  rateLimit({
+    duration: (key, request) => {
+      // Give premium users a shorter window
+      const isPremium = request.headers.get('X-User-Tier') === 'premium'
+      return isPremium ? 10_000 : 60_000
+    },
+  })
+)
+```
+
+```ts
+new Elysia().use(
+  rateLimit({
+    duration: async (key, request) => {
+      // Fetch user tier from database
+      const userTier = await getUserTier(key)
+      return userTier === 'premium' ? 10_000 : 60_000
+    },
+  })
+)
+```
+</details>
 
 ### max
 
