@@ -42,7 +42,9 @@ export const plugin = function rateLimitPlugin(userOptions?: Partial<Options>) {
   // do not make plugin to return async
   // otherwise request will be triggered twice
   return function registerRateLimitPlugin(app: Elysia) {
-    const seedValue = typeof options.max === 'function' ? 0 : options.max
+    const maxSeed = typeof options.max === 'function' ? 0 : options.max
+    const durationSeed = typeof options.duration === 'function' ? 0 : options.duration
+    const seedValue = `${maxSeed}:${durationSeed}`
     const plugin = new Elysia({
       name: 'elysia-rate-limit',
       seed: seedValue,
@@ -63,6 +65,7 @@ export const plugin = function rateLimitPlugin(userOptions?: Partial<Options>) {
       maxLimit: number,
       remaining: number,
       reset: number,
+      effectiveDuration: number,
       withRetryAfter = false
     ) => {
       if (!options.headers)
@@ -79,7 +82,7 @@ export const plugin = function rateLimitPlugin(userOptions?: Partial<Options>) {
       setHeader('RateLimit-Reset', String(reset))
 
       if (withRetryAfter)
-        setHeader('Retry-After', String(Math.ceil(options.duration / 1000)))
+        setHeader('Retry-After', String(Math.ceil(effectiveDuration / 1000)))
     }
 
     const applyRateLimit = async (
@@ -90,7 +93,13 @@ export const plugin = function rateLimitPlugin(userOptions?: Partial<Options>) {
       enhancedRequest: ExtendedRequest,
       clientKey: string
     ) => {
-      const { count, nextReset } = await options.context.increment(clientKey)
+      // Resolve duration (static or dynamic)
+      const requestTime = Date.now()
+      const effectiveDuration = typeof options.duration === 'function'
+        ? await options.duration(clientKey, enhancedRequest)
+        : options.duration
+
+      const { count, nextReset } = await options.context.increment(clientKey, effectiveDuration, requestTime)
 
       // Resolve max value (static or dynamic)
       const maxLimit = typeof options.max === 'function'
@@ -118,11 +127,11 @@ export const plugin = function rateLimitPlugin(userOptions?: Partial<Options>) {
         if (options.errorResponse instanceof Response) {
           // duplicate the response to avoid mutation
           const clonedResponse = options.errorResponse.clone()
-          writeRateLimitHeaders(clonedResponse.headers, maxLimit, remaining, reset, true)
+          writeRateLimitHeaders(clonedResponse.headers, maxLimit, remaining, reset, effectiveDuration, true)
           return clonedResponse
         }
 
-        writeRateLimitHeaders(set.headers, maxLimit, remaining, reset, true)
+        writeRateLimitHeaders(set.headers, maxLimit, remaining, reset, effectiveDuration, true)
 
         // set default status code
         set.status = 429
@@ -130,7 +139,7 @@ export const plugin = function rateLimitPlugin(userOptions?: Partial<Options>) {
         return options.errorResponse
       }
 
-      writeRateLimitHeaders(set.headers, maxLimit, remaining, reset)
+      writeRateLimitHeaders(set.headers, maxLimit, remaining, reset, effectiveDuration)
 
       logger(
         'plugin',

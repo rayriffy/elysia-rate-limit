@@ -6,7 +6,7 @@ export interface Context {
   init(options: Omit<Options, 'context'>): void
 
   // function will be called to count request
-  increment(key: string): MaybePromise<{
+  increment(key: string, duration?: number, requestTime?: number): MaybePromise<{
     count: number
     nextReset: Date
   }>

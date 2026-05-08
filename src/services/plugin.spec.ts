@@ -120,4 +120,48 @@ describe('rate limit plugin', () => {
     expect(r2.status).toBe(404)
     expect(r3.status).toBe(429)
   })
+
+  it('should support dynamic duration as a function', async () => {
+    const durations: string[] = []
+
+    const app = new Elysia()
+      .use(plugin({
+        max: 2,
+        duration: (_key, _request) => {
+          durations.push(_key)
+          return 60000
+        },
+        scoping: 'global',
+        headers: true,
+      }))
+      .get('/test', () => 'ok')
+
+    const r1 = await app.handle(new Request('http://localhost/test'))
+    const r2 = await app.handle(new Request('http://localhost/test'))
+    const r3 = await app.handle(new Request('http://localhost/test'))
+
+    expect(r1.status).toBe(200)
+    expect(r2.status).toBe(200)
+    expect(r3.status).toBe(429)
+    expect(durations.length).toBeGreaterThan(0)
+  })
+
+  it('should set Retry-After header based on resolved dynamic duration', async () => {
+    const customDurationMs = 30000 // 30 seconds
+
+    const app = new Elysia()
+      .use(plugin({
+        max: 1,
+        duration: () => customDurationMs,
+        scoping: 'global',
+        headers: true,
+      }))
+      .get('/test', () => 'ok')
+
+    await app.handle(new Request('http://localhost/test'))
+    const r2 = await app.handle(new Request('http://localhost/test'))
+
+    expect(r2.status).toBe(429)
+    expect(r2.headers.get('Retry-After')).toBe(String(Math.ceil(customDurationMs / 1000)))
+  })
 })

@@ -13,28 +13,32 @@ export class DefaultContext implements Context {
   private readonly id: string = (Math.random() + 1).toString(36).substring(7)
   private readonly maxSize: number
   private store!: AllocQuickLRU<string, Item>
-  private duration!: number
+  private duration: number | undefined
 
   public constructor(maxSize = 5000) {
     this.maxSize = maxSize
   }
 
   public init(options: Omit<Options, 'context'>) {
+    const durationDisplay = typeof options.duration === 'function' ? 'dynamic' : options.duration / 1000
     logger(
       `context:${this.id}`,
-      'initialized with maxSize: %d, and expire duration of %d seconds',
+      'initialized with maxSize: %d, and expire duration of %s seconds',
       this.maxSize,
-      options.duration / 1000
+      durationDisplay
     )
 
-    this.duration = options.duration
+    this.duration = typeof options.duration === 'function' ? undefined : options.duration
     this.store = new AllocQuickLRU<string, Item>({
       maxSize: this.maxSize,
     })
   }
 
-  public async increment(key: string) {
-    const now = Date.now()
+  public async increment(key: string, duration?: number, requestTime?: number) {
+    const effectiveDuration = duration ?? this.duration
+    if (effectiveDuration === undefined)
+      throw new Error('DefaultContext.increment: duration is required when options.duration is a function but no per-call duration was provided')
+    const now = requestTime ?? Date.now()
     let item = this.store.get(key)
 
     // if item is not found or expired, then issue a new one
@@ -48,7 +52,7 @@ export class DefaultContext implements Context {
 
       item = {
         count: 1,
-        nextReset: new Date(now + this.duration),
+        nextReset: new Date(now + effectiveDuration),
       }
     }
     // otherwise, increment the count
