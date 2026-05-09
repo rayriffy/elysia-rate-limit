@@ -165,4 +165,36 @@ describe('rate limit plugin', () => {
     expect(r2.headers.get('Retry-After')).toBe('60')
     expect(r2.headers.get('RateLimit-Reset')).toBe('60')
   })
+
+  it('should fail-closed with 429 when dynamic duration throws an error', async () => {
+    const app = new Elysia()
+      .use(plugin({
+        max: 10,
+        duration: () => {
+          throw new Error('Database connection failed')
+        },
+        scoping: 'global',
+      }))
+      .get('/test', () => 'ok')
+
+    const response = await app.handle(new Request('http://localhost/test'))
+    expect(response.status).toBe(429)
+    expect(await response.text()).toBe('rate-limit reached')
+  })
+
+  it('should fail-closed with custom error response when dynamic max throws an error', async () => {
+    const app = new Elysia()
+      .use(plugin({
+        max: async () => {
+          throw new Error('Database connection failed')
+        },
+        errorResponse: new Response('custom error', { status: 418 }),
+        scoping: 'global',
+      }))
+      .get('/test', () => 'ok')
+
+    const response = await app.handle(new Request('http://localhost/test'))
+    expect(response.status).toBe(418)
+    expect(await response.text()).toBe('custom error')
+  })
 })

@@ -92,18 +92,38 @@ export const plugin = function rateLimitPlugin(userOptions?: Partial<Options>) {
       enhancedRequest: ExtendedRequest,
       clientKey: string
     ) => {
-      // Resolve duration (static or dynamic)
+      let effectiveDuration: number
+      let maxLimit: number
+
+      try {
+        // Resolve duration (static or dynamic)
+        effectiveDuration = typeof options.duration === 'function'
+          ? await options.duration(clientKey, enhancedRequest)
+          : options.duration
+
+        // Resolve max value (static or dynamic)
+        maxLimit = typeof options.max === 'function'
+          ? await options.max(clientKey, enhancedRequest)
+          : options.max
+      } catch (err) {
+        logger(
+          'plugin',
+          'dynamic configuration function threw an error for clientKey: %s',
+          clientKey
+        )
+
+        if (options.errorResponse instanceof Error)
+          throw options.errorResponse
+
+        if (options.errorResponse instanceof Response)
+          return options.errorResponse.clone()
+
+        set.status = 429
+        return options.errorResponse
+      }
+
       const requestTime = Date.now()
-      const effectiveDuration = typeof options.duration === 'function'
-        ? await options.duration(clientKey, enhancedRequest)
-        : options.duration
-
       const { count, nextReset } = await options.context.increment(clientKey, effectiveDuration, requestTime)
-
-      // Resolve max value (static or dynamic)
-      const maxLimit = typeof options.max === 'function'
-        ? await options.max(clientKey, enhancedRequest)
-        : options.max
 
       const remaining = Math.max(maxLimit - count, 0)
       const reset = Math.max(
