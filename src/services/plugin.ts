@@ -65,7 +65,6 @@ export const plugin = function rateLimitPlugin(userOptions?: Partial<Options>) {
       maxLimit: number,
       remaining: number,
       reset: number,
-      effectiveDuration: number,
       withRetryAfter = false
     ) => {
       if (!options.headers)
@@ -82,7 +81,7 @@ export const plugin = function rateLimitPlugin(userOptions?: Partial<Options>) {
       setHeader('RateLimit-Reset', String(reset))
 
       if (withRetryAfter)
-        setHeader('Retry-After', String(Math.ceil(effectiveDuration / 1000)))
+        setHeader('Retry-After', String(reset))
     }
 
     const applyRateLimit = async (
@@ -127,11 +126,11 @@ export const plugin = function rateLimitPlugin(userOptions?: Partial<Options>) {
         if (options.errorResponse instanceof Response) {
           // duplicate the response to avoid mutation
           const clonedResponse = options.errorResponse.clone()
-          writeRateLimitHeaders(clonedResponse.headers, maxLimit, remaining, reset, effectiveDuration, true)
+          writeRateLimitHeaders(clonedResponse.headers, maxLimit, remaining, reset, true)
           return clonedResponse
         }
 
-        writeRateLimitHeaders(set.headers, maxLimit, remaining, reset, effectiveDuration, true)
+        writeRateLimitHeaders(set.headers, maxLimit, remaining, reset, true)
 
         // set default status code
         set.status = 429
@@ -139,7 +138,7 @@ export const plugin = function rateLimitPlugin(userOptions?: Partial<Options>) {
         return options.errorResponse
       }
 
-      writeRateLimitHeaders(set.headers, maxLimit, remaining, reset, effectiveDuration)
+      writeRateLimitHeaders(set.headers, maxLimit, remaining, reset)
 
       logger(
         'plugin',

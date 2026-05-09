@@ -146,22 +146,23 @@ describe('rate limit plugin', () => {
     expect(durations.length).toBeGreaterThan(0)
   })
 
-  it('should set Retry-After header based on resolved dynamic duration', async () => {
-    const customDurationMs = 30000 // 30 seconds
-
+  it('should set Retry-After header equal to RateLimit-Reset (not effectiveDuration of blocked request)', async () => {
     const app = new Elysia()
       .use(plugin({
         max: 1,
-        duration: () => customDurationMs,
+        // First request opens a 60s window. Second request evaluates to 10s.
+        duration: (key, req) => req.url.includes('free') ? 60000 : 10000,
         scoping: 'global',
         headers: true,
       }))
-      .get('/test', () => 'ok')
+      .get('/premium', () => 'premium')
+      .get('/free', () => 'free')
 
-    await app.handle(new Request('http://localhost/test'))
-    const r2 = await app.handle(new Request('http://localhost/test'))
+    await app.handle(new Request('http://localhost/free'))
+    const r2 = await app.handle(new Request('http://localhost/premium'))
 
     expect(r2.status).toBe(429)
-    expect(r2.headers.get('Retry-After')).toBe(String(Math.ceil(customDurationMs / 1000)))
+    expect(r2.headers.get('Retry-After')).toBe('60')
+    expect(r2.headers.get('RateLimit-Reset')).toBe('60')
   })
 })
