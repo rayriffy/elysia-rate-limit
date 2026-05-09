@@ -140,4 +140,31 @@ describe('DefaultContext', () => {
 
     await ctx.kill()
   })
+
+  it('should apply high-water mark to extend window but not shrink it', async () => {
+    const ctx = new DefaultContext()
+    ctx.init({ ...defaultOptions, duration: 60000 })
+
+    const key = 'test-key-11'
+    const now = Date.now()
+
+    // 1. Open window with short duration (e.g. 1000ms)
+    const res1 = await ctx.increment(key, 1000, now)
+    expect(res1.start).toBe(now)
+    expect(res1.nextReset.getTime()).toBe(now + 1000)
+
+    // 2. Request with longer duration (e.g. 60000ms) -> should extend window
+    const res2 = await ctx.increment(key, 60000, now + 500)
+    expect(res2.count).toBe(2)
+    expect(res2.start).toBe(now) // Start time remains unchanged
+    expect(res2.nextReset.getTime()).toBe(now + 60000) // Extended to 60s from start
+
+    // 3. Request with shorter duration again (e.g. 1000ms) -> should NOT shrink window
+    const res3 = await ctx.increment(key, 1000, now + 600)
+    expect(res3.count).toBe(3)
+    expect(res3.start).toBe(now)
+    expect(res3.nextReset.getTime()).toBe(now + 60000) // Remains at 60s from start
+
+    await ctx.kill()
+  })
 })

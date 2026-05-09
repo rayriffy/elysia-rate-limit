@@ -9,6 +9,7 @@ export interface Context {
   increment(key: string, duration?: number, requestTime?: number): MaybePromise<{
     count: number
     nextReset: Date
+    start: number
   }>
 
   // function will be called to deduct count in case of request failure

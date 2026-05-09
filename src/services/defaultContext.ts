@@ -7,6 +7,7 @@ import { logger } from './logger'
 interface Item {
   count: number
   nextReset: Date
+  start: number
 }
 
 export class DefaultContext implements Context {
@@ -42,27 +43,30 @@ export class DefaultContext implements Context {
     let item = this.store.get(key)
 
     // if item is not found or expired, then issue a new one
-    if (item === undefined || item.nextReset.getTime() < now) {
+    if (item === undefined || item.nextReset.getTime() <= now) {
       logger(
         `context:${this.id}`,
-        'created new item for key: %s (reason: %s)',
+        'issue new token for %s (expire in %d seconds)',
         key,
-        item === undefined ? 'not found' : 'expired'
+        effectiveDuration / 1000
       )
 
       item = {
         count: 1,
         nextReset: new Date(now + effectiveDuration),
+        start: now,
+      }
+    } else {
+      // otherwise, increment the count
+      item.count++
+
+      // Apply High-Water Mark: Extend window if current request demands a longer duration
+      const requiredReset = item.start + effectiveDuration
+      if (requiredReset > item.nextReset.getTime()) {
+        item.nextReset = new Date(requiredReset)
       }
     }
-    // otherwise, increment the count
-    else {
-      logger(`context:${this.id}`, 'incremented count for key: %s', key)
 
-      item.count++
-    }
-
-    // update the store
     this.store.set(key, item)
 
     return item
