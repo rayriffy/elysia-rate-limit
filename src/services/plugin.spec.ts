@@ -197,4 +197,32 @@ describe('rate limit plugin', () => {
     expect(response.status).toBe(418)
     expect(await response.text()).toBe('custom error')
   })
+
+  it('should fail-closed when duration resolves to NaN', async () => {
+    const app = new Elysia()
+      .use(plugin({
+        max: 10,
+        duration: () => NaN,
+        scoping: 'global',
+      }))
+      .get('/test', () => 'ok')
+
+    const response = await app.handle(new Request('http://localhost/test'))
+    expect(response.status).toBe(429)
+    expect(await response.text()).toBe('rate-limit reached')
+  })
+
+  it('should fail-closed when duration resolves to 0 or negative', async () => {
+    const app = new Elysia()
+      .use(plugin({
+        max: 10,
+        duration: () => -1000,
+        scoping: 'global',
+      }))
+      .get('/test', () => 'ok')
+
+    const response = await app.handle(new Request('http://localhost/test'))
+    expect(response.status).toBe(429)
+    expect(await response.text()).toBe('rate-limit reached')
+  })
 })

@@ -101,10 +101,18 @@ export const plugin = function rateLimitPlugin(userOptions?: Partial<Options>) {
           ? await options.duration(clientKey, enhancedRequest)
           : options.duration
 
+        if (typeof effectiveDuration !== 'number' || isNaN(effectiveDuration) || effectiveDuration <= 0) {
+          throw new Error(`Invalid duration resolved: ${effectiveDuration}. Duration must be a positive number.`)
+        }
+
         // Resolve max value (static or dynamic)
         maxLimit = typeof options.max === 'function'
           ? await options.max(clientKey, enhancedRequest)
           : options.max
+
+        if (typeof maxLimit !== 'number' || isNaN(maxLimit) || maxLimit <= 0) {
+          throw new Error(`Invalid max limit resolved: ${maxLimit}. Max must be a positive number.`)
+        }
       } catch (err) {
         logger(
           'plugin',
