@@ -1,5 +1,16 @@
 # elysia-rate-limit
 
+## 4.6.2
+
+### Patch Changes
+
+- f088ef4: Fix cases where user ableto bypass rate limit if duration were set to 0 or NaN
+- cb2811f: Support dynamic duration as a function
+- a54821d: Add fail-closed error handling to dynamic duration and max configuration functions to prevent unhandled promise rejections and bypasses.
+- 2ce04e3: Ensure Retry-After header correctly aligns with RateLimit-Reset rather than dynamically recalculating the duration of the rejected request.
+- 3a9a100: Ensure unique plugin seeds for dynamic max and duration configurations to prevent Elysia from incorrectly deduplicating distinct rate limiter instances.
+- 50e695b: Implement high-water mark logic for dynamic duration to prevent attackers from spoofing shorter window expirations by intentionally opening shorter windows.
+
 ## 4.6.1
 
 ### Patch Changes
