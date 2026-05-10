@@ -1,6 +1,9 @@
-name: PR Checks
+name: Build & Test
 
 on:
+  push:
+    branches:
+      - main
   pull_request:
     branches:
       - main
@@ -36,4 +39,5 @@ jobs:
       - name: build
         run: bun run build
       - name: publish
+        if: github.event_name == 'pull_request'
         run: bunx pkg-pr-new publish
