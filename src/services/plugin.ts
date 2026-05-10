@@ -42,9 +42,14 @@ export const plugin = function rateLimitPlugin(userOptions?: Partial<Options>) {
   // do not make plugin to return async
   // otherwise request will be triggered twice
   return function registerRateLimitPlugin(app: Elysia) {
-    const maxSeed = typeof options.max === 'function' ? 0 : options.max
-    const durationSeed = typeof options.duration === 'function' ? 0 : options.duration
-    const seedValue = `${maxSeed}:${durationSeed}`
+    const maxSeed = typeof options.max === 'function' ? 'dynamic' : options.max
+    const durationSeed = typeof options.duration === 'function' ? 'dynamic' : options.duration
+    // If scoping is defined, use it to further differentiate the plugin instances
+    const scopeSeed = options.scoping ? `:${options.scoping}` : ''
+    // Use random string if both are dynamic to avoid collisions between different dynamic rate limiters
+    const randomSeed = maxSeed === 'dynamic' || durationSeed === 'dynamic' ? `:${Math.random().toString(36).substring(7)}` : ''
+    
+    const seedValue = `${maxSeed}:${durationSeed}${scopeSeed}${randomSeed}`
     const plugin = new Elysia({
       name: 'elysia-rate-limit',
       seed: seedValue,

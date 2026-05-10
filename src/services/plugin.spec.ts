@@ -225,4 +225,49 @@ describe('rate limit plugin', () => {
     expect(response.status).toBe(429)
     expect(await response.text()).toBe('rate-limit reached')
   })
+
+  it('should not deduplicate distinct plugins when max and duration are dynamic functions', async () => {
+    // Both plugins use dynamic max and duration, but they should be registered separately
+    const plugin1 = plugin({
+      max: () => 2,
+      duration: () => 60000,
+      scoping: 'global',
+      headers: true,
+    })
+
+    const plugin2 = plugin({
+      max: () => 5,
+      duration: () => 10000,
+      scoping: 'global',
+      headers: true,
+    })
+
+    const app = new Elysia()
+      .use(plugin1)
+      .get('/test1', () => 'ok')
+      
+    const app2 = new Elysia()
+      .use(plugin2)
+      .get('/test2', () => 'ok')
+
+    // If deduplication bug exists, plugin2 is ignored, so max limit is 2.
+    const r1 = await app.handle(new Request('http://localhost/test1'))
+    const r2 = await app.handle(new Request('http://localhost/test1'))
+    const r3 = await app.handle(new Request('http://localhost/test1'))
+
+    // Since plugin1 is registered first and has max: 2, the 3rd request should be 429
+    expect(r3.status).toBe(429)
+
+    // Now test a separate route that only uses plugin2
+    const p2_r1 = await app2.handle(new Request('http://localhost/test2'))
+    const p2_r2 = await app2.handle(new Request('http://localhost/test2'))
+    const p2_r3 = await app2.handle(new Request('http://localhost/test2'))
+    const p2_r4 = await app2.handle(new Request('http://localhost/test2'))
+    const p2_r5 = await app2.handle(new Request('http://localhost/test2'))
+    const p2_r6 = await app2.handle(new Request('http://localhost/test2'))
+
+    expect(p2_r3.status).toBe(200) // If bug existed, this would have been 429 because it used plugin1's max: 2
+    expect(p2_r5.status).toBe(200)
+    expect(p2_r6.status).toBe(429) // Correctly respects plugin2's max: 5
+  })
 })
