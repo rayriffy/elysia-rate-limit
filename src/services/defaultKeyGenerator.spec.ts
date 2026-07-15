@@ -1,10 +1,10 @@
 import { describe, expect, it, mock } from 'bun:test'
-import type { Server } from '../@types/Server.ts'
+import type { Server, ExtendedRequest } from '../@types/Server.ts'
 import { defaultKeyGenerator } from './defaultKeyGenerator'
 
 describe('defaultKeyGenerator', () => {
   it('should return client IP address', () => {
-    const mockRequest = {} as Request
+    const mockRequest = {} as ExtendedRequest
     const mockServer = {
       requestIP: mock(() => ({ address: '192.168.1.1' })),
     }
@@ -20,7 +20,7 @@ describe('defaultKeyGenerator', () => {
   })
 
   it('should return empty string when IP address is undefined', () => {
-    const mockRequest = {} as Request
+    const mockRequest = {} as ExtendedRequest
     const mockServer = {
       requestIP: mock(() => ({ address: undefined })),
     }
@@ -44,7 +44,7 @@ describe('defaultKeyGenerator', () => {
   })
 
   it('should return empty string when requestIP returns null', () => {
-    const mockRequest = {} as Request
+    const mockRequest = {} as ExtendedRequest
     const mockServer = {
       requestIP: mock(() => null),
     }
@@ -68,7 +68,7 @@ describe('defaultKeyGenerator', () => {
   })
 
   it('should return empty string when server is null', () => {
-    const mockRequest = {} as Request
+    const mockRequest = {} as ExtendedRequest
 
     // Mock console.warn to avoid output during tests
     const originalWarn = console.warn
@@ -88,7 +88,7 @@ describe('defaultKeyGenerator', () => {
     const originalWarn = console.warn
     console.warn = mock(() => {})
 
-    const key = defaultKeyGenerator(undefined as unknown as Request, null, {})
+    const key = defaultKeyGenerator(undefined as unknown as ExtendedRequest, null, {})
 
     expect(key).toBe('')
     expect(console.warn).toHaveBeenCalled()

@@ -92,7 +92,7 @@ describe('rate limit plugin', () => {
 
     // Simulate a plugin that adds a custom property to the Elysia context,
     // similar to how elysia-ip adds an `ip` property.
-    const contextPlugin = new Elysia().derive({ as: 'global' }, () => ({
+    const contextPlugin = new Elysia().derive('global', () => ({
       customProp: 'hello-from-plugin',
     }))
 
@@ -269,5 +269,109 @@ describe('rate limit plugin', () => {
     expect(p2_r3.status).toBe(200) // If bug existed, this would have been 429 because it used plugin1's max: 2
     expect(p2_r5.status).toBe(200)
     expect(p2_r6.status).toBe(429) // Correctly respects plugin2's max: 5
+  })
+
+  it('should fail-closed when max resolves to NaN or negative', async () => {
+    const app = new Elysia()
+      .use(plugin({
+        max: () => -10,
+        duration: 60000,
+        scoping: 'global',
+      }))
+      .get('/test', () => 'ok')
+
+    const response = await app.handle(new Request('http://localhost/test'))
+    expect(response.status).toBe(429)
+    expect(await response.text()).toBe('rate-limit reached')
+  })
+
+  it('should return cloned Response when limit is reached and errorResponse is a Response', async () => {
+    const customResponse = new Response('Too Many Requests Custom', { status: 429, headers: { 'X-Custom': '1' } })
+    const app = new Elysia()
+      .use(plugin({
+        max: 1,
+        duration: 60000,
+        scoping: 'global',
+        errorResponse: customResponse,
+        headers: true,
+      }))
+      .get('/test', () => 'ok')
+
+    await app.handle(new Request('http://localhost/test'))
+    const response = await app.handle(new Request('http://localhost/test'))
+    
+    expect(response.status).toBe(429)
+    expect(response.headers.get('X-Custom')).toBe('1')
+    expect(response.headers.has('RateLimit-Reset')).toBe(true)
+    expect(await response.text()).toBe('Too Many Requests Custom')
+  })
+
+  it('should pre-generate clientKey if skip has 2 parameters', async () => {
+    let skipCalledWithKey: string | undefined
+    const app = new Elysia()
+      .use(plugin({
+        max: 10,
+        scoping: 'global',
+        skip: (req, key) => {
+          skipCalledWithKey = key
+          return false
+        }
+      }))
+      .get('/test', () => 'ok')
+
+    await app.handle(new Request('http://localhost/test'))
+    expect(skipCalledWithKey).toBeDefined()
+    expect(typeof skipCalledWithKey).toBe('string')
+  })
+
+  it('should refund rate limit if countFailedRequest is false and request fails', async () => {
+    const app = new Elysia()
+      .use(plugin({
+        max: 2,
+        duration: 60000,
+        scoping: 'global',
+        countFailedRequest: false,
+      }))
+      .get('/fail', () => {
+        throw new Error('Something went wrong')
+      })
+      .get('/success', () => 'ok')
+
+    // Request 1 fails, should be refunded
+    const r1 = await app.handle(new Request('http://localhost/fail'))
+    expect(r1.status).toBe(500)
+
+    // Request 2 fails, should be refunded
+    const r2 = await app.handle(new Request('http://localhost/fail'))
+    expect(r2.status).toBe(500)
+
+    // Request 3 succeeds, should pass because previous ones were refunded
+    const r3 = await app.handle(new Request('http://localhost/success'))
+    expect(r3.status).toBe(200)
+
+    // Request 4 succeeds, should pass
+    const r4 = await app.handle(new Request('http://localhost/success'))
+    expect(r4.status).toBe(200)
+
+    // Request 5 should be rate limited
+    const r5 = await app.handle(new Request('http://localhost/success'))
+    expect(r5.status).toBe(429)
+  })
+
+  it('should call context.kill on stop', async () => {
+    const customContext = new DefaultContext()
+    const killSpy = mock(() => Promise.resolve())
+    customContext.kill = killSpy
+
+    const app = new Elysia()
+      .use(plugin({
+        context: customContext,
+        scoping: 'global',
+      }))
+      .listen(0)
+
+    await app.stop()
+
+    expect(killSpy).toHaveBeenCalled()
   })
 })
