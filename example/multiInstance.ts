@@ -12,7 +12,7 @@ const keyGenerator: Generator<{ ip: string }> = async (req, server, { ip }) =>
 const aInstance = new Elysia()
   .use(
     rateLimit({
-      scoping: 'scoped',
+      scoping: 'plugin',
       duration: 200 * 1000,
       generator: keyGenerator,
     })
@@ -22,7 +22,7 @@ const aInstance = new Elysia()
 const bInstance = new Elysia()
   .use(
     rateLimit({
-      scoping: 'scoped',
+      scoping: 'plugin',
       duration: 100 * 1000,
       generator: keyGenerator,
     })

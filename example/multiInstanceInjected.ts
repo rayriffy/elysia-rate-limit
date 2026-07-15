@@ -6,14 +6,12 @@ import { rateLimit } from '../src'
 import type { Server } from 'bun'
 import type { Options } from '../src'
 
-let server: Server | null
+let server: Server<unknown> | undefined
 
 const options: Partial<Options> = {
-  scoping: 'scoped',
+  scoping: 'plugin',
   duration: 200 * 1000,
-  injectServer: () => {
-    return server!
-  },
+  injectServer: () => server,
 }
 
 // const keyGenerator: Generator<{ ip: string }> = async (req, server, { ip }) => Bun.hash(JSON.stringify(ip)).toString()
