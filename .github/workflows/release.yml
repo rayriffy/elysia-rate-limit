@@ -19,6 +19,10 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v7
+      - name: node
+        uses: actions/setup-node@v7
+        with:
+          node-version: lts/*
       - name: bun
         uses: oven-sh/setup-bun@v2
         with:
@@ -33,6 +37,6 @@ jobs:
         id: changesets
         uses: changesets/action@v1
         with:
-          publish: bun changeset publish
+          publish: npm exec changeset publish
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
