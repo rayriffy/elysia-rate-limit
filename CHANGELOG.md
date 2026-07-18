@@ -1,5 +1,11 @@
 # elysia-rate-limit
 
+## 5.0.0
+
+### Major Changes
+
+- 556666b: migrate plugin to support elysia 2.0
+
 ## 4.6.2
 
 ### Patch Changes
