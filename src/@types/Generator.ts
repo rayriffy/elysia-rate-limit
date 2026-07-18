@@ -1,4 +1,4 @@
-import type { MaybePromise } from 'elysia'
+import type { MaybePromise } from 'elysia/types'
 import type { ExtendedRequest, Server } from './Server.ts'
 
 export type Generator<T extends object = {}> = (

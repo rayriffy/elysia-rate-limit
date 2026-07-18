@@ -1,4 +1,4 @@
-import Elysia from 'elysia'
+import Elysia, { StatusMap, type HTTPHeaders } from 'elysia'
 
 import { defaultOptions } from '../constants/defaultOptions'
 import { DefaultContext } from './defaultContext'
@@ -66,7 +66,7 @@ export const plugin = function rateLimitPlugin(userOptions?: Partial<Options>) {
     }
 
     const writeRateLimitHeaders = (
-      target: Headers | Record<string, string | number>,
+      target: Headers | HTTPHeaders,
       maxLimit: number,
       remaining: number,
       reset: number,
@@ -91,8 +91,8 @@ export const plugin = function rateLimitPlugin(userOptions?: Partial<Options>) {
 
     const applyRateLimit = async (
       set: {
-        headers: Record<string, string | number>
-        status?: number | string
+        headers: HTTPHeaders
+        status?: number | keyof StatusMap
       },
       enhancedRequest: ExtendedRequest,
       clientKey: string
@@ -198,8 +198,9 @@ export const plugin = function rateLimitPlugin(userOptions?: Partial<Options>) {
     // a wrapper function and use `buildDerived` to extract only non-core
     // properties at runtime — invisible to sucrose's static analysis.
 
-    plugin.onBeforeHandle(
-      { as: options.scoping },
+    plugin.beforeHandle(
+      // @ts-expect-error generated .beforeHandle() types for each scope are overload and unidentical
+      options.scoping,
       async function onBeforeHandleRateLimitHandler({
         set,
         request,
@@ -250,8 +251,9 @@ export const plugin = function rateLimitPlugin(userOptions?: Partial<Options>) {
       }
     )
 
-    plugin.onError(
-      { as: options.scoping },
+    plugin.error(
+      // @ts-expect-error generated .error() types for each scope are overload and unidentical
+      options.scoping,
       async function onErrorRateLimitHandler({
         request,
         cookie,
@@ -310,7 +312,7 @@ export const plugin = function rateLimitPlugin(userOptions?: Partial<Options>) {
       }
     )
 
-    plugin.onStop(async function onStopRateLimitHandler() {
+    plugin.cleanup(async function onStopRateLimitHandler() {
       logger('plugin', 'kill signal received')
       await options.context.kill()
     })

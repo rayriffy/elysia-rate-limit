@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'bun:test'
 import { defaultKeyGenerator } from '../services/defaultKeyGenerator'
 import { defaultOptions } from './defaultOptions'
+import type { ExtendedRequest } from '../@types/Server.ts'
 
 describe('defaultOptions', () => {
   it('should have the expected default values', () => {
@@ -17,7 +18,7 @@ describe('defaultOptions', () => {
   })
 
   it('should have a skip function that returns false by default', () => {
-    const mockRequest = {} as Request
+    const mockRequest = {} as ExtendedRequest
     expect(defaultOptions.skip(mockRequest)).toBe(false)
   })
 
