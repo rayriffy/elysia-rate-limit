@@ -1,5 +1,11 @@
 # elysia-rate-limit
 
+## 5.1.0
+
+### Minor Changes
+
+- 554318e: Update published ESM entry points to use `.mjs` modules and `.d.mts` type declarations for clearer module resolution in consumers and tooling.
+
 ## 5.0.0
 
 ### Major Changes
