@@ -1,5 +1,11 @@
 # elysia-rate-limit
 
+## 4.6.3
+
+### Patch Changes
+
+- bec20a8: Count malformed request bodies and request-side validation failures toward rate limits.
+
 ## 4.6.2
 
 ### Patch Changes
