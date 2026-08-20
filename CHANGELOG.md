@@ -1,5 +1,11 @@
 # elysia-rate-limit
 
+## 5.1.1
+
+### Patch Changes
+
+- 4d9ed15: Count malformed request bodies and request-side validation failures toward rate limits.
+
 ## 5.1.0
 
 ### Minor Changes
