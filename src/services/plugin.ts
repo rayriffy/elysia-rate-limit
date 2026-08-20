@@ -261,19 +261,27 @@ export const plugin = function rateLimitPlugin(userOptions?: Partial<Options>) {
         const error = context.error as unknown
         const code = context.code as unknown
 
-        const errorStatus = typeof error === 'object' && error !== null
-          ? (error as {
-            status?: number
-            statusCode?: number
-          }).status ?? (error as {
-            status?: number
-            statusCode?: number
-          }).statusCode
-          : undefined
-        const currentStatus = typeof set?.status === 'number' ? set.status : undefined
-        const isNotFound = code === 'NOT_FOUND' || currentStatus === 404 || errorStatus === 404
+        const errorDetails =
+          typeof error === 'object' && error !== null
+            ? (error as {
+                name?: string
+                status?: number
+                statusCode?: number
+                type?: string
+              })
+            : undefined
+        const errorStatus = errorDetails?.status ?? errorDetails?.statusCode
+        const currentStatus =
+          typeof set?.status === 'number' ? set.status : undefined
+        const isNotFound =
+          code === 'NOT_FOUND' || currentStatus === 404 || errorStatus === 404
+        const isParseError =
+          code === 'PARSE' || errorDetails?.name === 'ParseError'
+        const isRequestValidationError =
+          (code === 'VALIDATION' || errorDetails?.name === 'ValidationError') &&
+          errorDetails?.type !== 'response'
 
-        if (isNotFound) {
+        if (isNotFound || isParseError || isRequestValidationError) {
           const enhancedRequest = attachCookieToRequest(request, cookie)
 
           const clientKey = await options.generator(

@@ -287,9 +287,11 @@ const ipGenerator: Generator<{ ip: SocketAddress }> = (_req, _serv, { ip }) => {
 Default: `false`
 
 Should this plugin count rate-limit to user when request failed?
-By default,
-this plugin will refund request count to a client
-when `onError` lifecycle called.
+By default, the plugin refunds requests that fail after `beforeHandle`
+when the `onError` lifecycle runs.
+
+Requests rejected before `beforeHandle` are always counted. This includes
+unknown routes, malformed request bodies, and request schema validation failures.
 ([Learn more in Lifecycle](https://elysiajs.com/concept/middleware.html#life-cycle))
 
 ### context

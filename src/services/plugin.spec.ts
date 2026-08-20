@@ -1,5 +1,5 @@
 import { describe, expect, it, mock } from 'bun:test'
-import { Elysia } from 'elysia'
+import { Elysia, t } from 'elysia'
 import type { Generator } from '../@types/Generator'
 import type { Options } from '../@types/Options'
 import { DefaultContext } from './defaultContext'
@@ -119,6 +119,82 @@ describe('rate limit plugin', () => {
     expect(r1.status).toBe(404)
     expect(r2.status).toBe(404)
     expect(r3.status).toBe(429)
+  })
+
+  it('should rate limit malformed JSON requests', async () => {
+    const app = new Elysia()
+      .use(plugin({ max: 2, duration: 60000, scoping: 'global' }))
+      .post('/login', () => ({ ok: true }), {
+        body: t.Object({ email: t.String() }),
+      })
+
+    const responses = []
+    for (let index = 0; index < 3; index++) {
+      responses.push(
+        await app.handle(
+          new Request('http://localhost/login', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: '{not-json',
+          })
+        )
+      )
+    }
+
+    expect(responses.map(response => response.status)).toEqual([400, 400, 429])
+    expect(
+      responses.map(response => response.headers.get('RateLimit-Remaining'))
+    ).toEqual(['1', '0', '0'])
+  })
+
+  it('should rate limit request validation failures', async () => {
+    const app = new Elysia()
+      .use(plugin({ max: 2, duration: 60000, scoping: 'global' }))
+      .post('/login', () => ({ ok: true }), {
+        body: t.Object({ email: t.String() }),
+      })
+
+    const responses = []
+    for (let index = 0; index < 3; index++) {
+      responses.push(
+        await app.handle(
+          new Request('http://localhost/login', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: '{}',
+          })
+        )
+      )
+    }
+
+    expect(responses.map(response => response.status)).toEqual([422, 422, 429])
+    expect(
+      responses.map(response => response.headers.get('RateLimit-Remaining'))
+    ).toEqual(['1', '0', '0'])
+  })
+
+  it('should not double count response validation failures', async () => {
+    const app = new Elysia()
+      .use(
+        plugin({
+          max: 2,
+          duration: 60000,
+          scoping: 'global',
+          countFailedRequest: true,
+        })
+      )
+      .get('/response', () => ({ ok: 'not-a-boolean' }), {
+        response: t.Object({ ok: t.Boolean() }),
+      })
+
+    const responses = []
+    for (let index = 0; index < 3; index++)
+      responses.push(await app.handle(new Request('http://localhost/response')))
+
+    expect(responses.map(response => response.status)).toEqual([422, 422, 429])
+    expect(
+      responses.map(response => response.headers.get('RateLimit-Remaining'))
+    ).toEqual(['1', '0', '0'])
   })
 
   it('should support dynamic duration as a function', async () => {
