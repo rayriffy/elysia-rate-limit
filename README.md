@@ -12,7 +12,7 @@ Lightweight rate limiter plugin for [Elysia.js](https://elysiajs.com/)
 bun add elysia-rate-limit
 ```
 
-If you're using Elysia v2.0.0 or higher, you should use `elysia-rate-limit` v5.0.0 or higher. If you're using Elysia v1.0.0, you should use version 4.6.2 or lower.
+If you're using Elysia v2.0.0 or higher, you should use `elysia-rate-limit` v5.0.0 or higher. If you're using Elysia v1.0.0, you should use version 4.6.3 or lower.
 
 ## Compatibility
 
@@ -23,7 +23,7 @@ However, please refer to the following table to determine which version to use.
 | Plugin version | Requirements                 |
 |----------------|------------------------------|
 | 5.0.0+         | Bun > 1.0.3, Elysia >= 2.0.0 |
-| 3.0.0 - 4.6.2  | Bun > 1.0.3, Elysia >= 1.0.0 |
+| 3.0.0 - 4.6.3  | Bun > 1.0.3, Elysia >= 1.0.0 |
 | 2.0.0 - 2.2.0  | Bun > 1.0.3, Elysia < 1.0.0  |
 | 1.0.2 - 1.3.0  | Bun <= 1.0.3, Elysia < 1.0.0 |
 
