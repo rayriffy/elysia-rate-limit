@@ -1,23 +1,28 @@
 name: Release
+
 on:
   push:
     branches:
-      - main
+      - v4
+
 concurrency: ${{ github.workflow }}-${{ github.ref }}
+
+permissions:
+  contents: write
+  pull-requests: write
+  id-token: write
 
 jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      contents: write
-      packages: write
-      pull-requests: write
-      issues: read
     steps:
       - name: checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
+      - name: node
+        uses: actions/setup-node@v7
+        with:
+          node-version: lts/*
       - name: bun
         uses: oven-sh/setup-bun@v2
         with:
@@ -32,8 +37,7 @@ jobs:
         id: changesets
         uses: changesets/action@v1
         with:
-          publish: bun changeset publish
+          publish: npm exec -- changeset publish --tag v4
+          pr-base-branch: v4
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NPM_CONFIG_PROVENANCE: true
