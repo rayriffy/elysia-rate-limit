@@ -37,7 +37,7 @@ jobs:
         id: changesets
         uses: changesets/action@v1
         with:
-          publish: npm exec -- changeset publish --tag v4
+          publish: npm exec -- changeset publish --tag previous
           pr-base-branch: v4
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
