@@ -32,6 +32,75 @@ describe('rate limit plugin', () => {
     expect(initSpy).toHaveBeenCalled()
   })
 
+  it.each(['global', 'plugin'] as const)(
+    'should enforce limits with %s scoping on Elysia 2 RC',
+    async scoping => {
+      const handler = mock(() => 'ok')
+      const app = new Elysia()
+        .use(plugin({ max: 1, scoping, generator: () => 'test-key' }))
+        .get('/test', handler)
+
+      const allowed = await app.handle(new Request('http://localhost/test'))
+      const blocked = await app.handle(new Request('http://localhost/test'))
+
+      expect(allowed.status).toBe(200)
+      expect(allowed.headers.get('RateLimit-Remaining')).toBe('0')
+      expect(blocked.status).toBe(429)
+      expect(await blocked.text()).toBe('rate-limit reached')
+      expect(blocked.headers.has('Retry-After')).toBe(true)
+      expect(handler).toHaveBeenCalledTimes(1)
+    }
+  )
+
+  it('should keep plugin-scoped request and error hooks out of parent and sibling routes', async () => {
+    const limited = new Elysia()
+      .use(plugin({ max: 1, scoping: 'plugin', generator: () => 'test-key' }))
+      .post('/limited', { body: t.Object({ email: t.String() }) }, () => 'ok')
+    const sibling = new Elysia().get('/sibling', () => 'ok')
+    const app = new Elysia()
+      .use(limited)
+      .use(sibling)
+      .get('/parent', () => 'ok')
+      .post('/parent', { body: t.Object({ email: t.String() }) }, () => 'ok')
+
+    for (let index = 0; index < 2; index++) {
+      for (const path of ['/parent', '/sibling']) {
+        const response = await app.handle(new Request(`http://localhost${path}`))
+        expect(response.status).toBe(200)
+        expect(response.headers.has('RateLimit-Limit')).toBe(false)
+      }
+
+      const response = await app.handle(
+        new Request('http://localhost/parent', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: '{}',
+        })
+      )
+      expect(response.status).toBe(422)
+      expect(response.headers.has('RateLimit-Limit')).toBe(false)
+    }
+
+    const invalid = await app.handle(
+      new Request('http://localhost/limited', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: '{}',
+      })
+    )
+    const blocked = await app.handle(
+      new Request('http://localhost/limited', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ email: 'test@example.com' }),
+      })
+    )
+
+    expect(invalid.status).toBe(422)
+    expect(invalid.headers.get('RateLimit-Remaining')).toBe('0')
+    expect(blocked.status).toBe(429)
+  })
+
   it('should not consume the raw request body for POST routes', async () => {
     const app = new Elysia()
       .use(plugin({ max: 100, scoping: 'global' }))
@@ -106,6 +175,37 @@ describe('rate limit plugin', () => {
     expect(receivedDerived.length).toBeGreaterThan(0)
     expect(receivedDerived[0].customProp).toBe('hello-from-plugin')
   })
+
+  it.each(['application/json', 'text/plain'])(
+    'should preserve raw %s bodies while forwarding derived context',
+    async contentType => {
+      const generator = mock<Generator<{ customProp: string }>>(
+        (_request, _server, derived) => {
+          expect(derived.customProp).toBe('hello-from-plugin')
+          expect(derived).not.toHaveProperty('body')
+          expect(derived).not.toHaveProperty('request')
+          return 'test-key'
+        }
+      )
+      const app = new Elysia()
+        .derive('global', () => ({ customProp: 'hello-from-plugin' }))
+        .use(plugin({ generator }))
+        .post('/webhook', async ({ request }) => request.text())
+
+      const payload = '{ "event": "payment.success", "id": "123" }'
+      const response = await app.handle(
+        new Request('http://localhost/webhook', {
+          method: 'POST',
+          headers: { 'content-type': contentType },
+          body: payload,
+        })
+      )
+
+      expect(response.status).toBe(200)
+      expect(await response.text()).toBe(payload)
+      expect(generator).toHaveBeenCalledTimes(1)
+    }
+  )
 
   it('should rate limit not found routes', async () => {
     const app = new Elysia()
@@ -196,6 +296,7 @@ describe('rate limit plugin', () => {
         {
           response: t.Object({ ok: t.Boolean() }),
         },
+        // @ts-expect-error Intentionally violate the response schema.
         () => ({ ok: 'not-a-boolean' })
       )
 
@@ -203,7 +304,8 @@ describe('rate limit plugin', () => {
     for (let index = 0; index < 3; index++)
       responses.push(await app.handle(new Request('http://localhost/response')))
 
-    expect(responses.map(response => response.status)).toEqual([422, 422, 429])
+    // Elysia 2 RC treats response validation failures as server errors.
+    expect(responses.map(response => response.status)).toEqual([500, 500, 429])
     expect(
       responses.map(response => response.headers.get('RateLimit-Remaining'))
     ).toEqual(['1', '0', '0'])

@@ -183,30 +183,20 @@ export const plugin = function rateLimitPlugin(userOptions?: Partial<Options>) {
       )
     }
 
-    // IMPORTANT: The lifecycle hooks below intentionally avoid destructuring
-    // `body`, `query`, `params`, `headers`, or using `...rest` in the
-    // parameter list. Elysia's static analyzer (sucrose) inspects the
-    // function signature to infer which context properties are needed, and
-    // referencing `body` (or spreading into a rest param that gets passed to
-    // another function) causes Elysia to eagerly parse the request body for
-    // ALL routes — including routes that need to read the raw body via
-    // `request.text()` (e.g. Stripe webhook signature verification).
-    // See: https://github.com/elysiajs/elysia/blob/main/src/sucrose.ts
-    //
-    // To preserve backward compatibility with custom generators that read
-    // derived context (e.g. `elysia-ip`), we capture the full context via
-    // a wrapper function and use `buildDerived` to extract only non-core
-    // properties at runtime — invisible to sucrose's static analysis.
+    // Elysia calls lifecycle hooks with a single context argument. Collect
+    // derived values in a default parameter so sucrose only sees the explicit
+    // context reads in the handler body. Passing the full context to a helper
+    // there, or using `arguments`, makes the RC analyzer infer every property
+    // and eagerly consume raw request bodies (e.g. signed webhook payloads).
+    // Keep `body` and context rest/spread out of both handler bodies as well.
 
-    plugin.beforeHandle(
-      // @ts-expect-error generated .beforeHandle() types for each scope are overload and unidentical
+    plugin.onBeforeHandle(
       options.scoping,
-      async function onBeforeHandleRateLimitHandler({
-        set,
-        request,
-        cookie,
-      }) {
-        const context = arguments[0] as Record<string, unknown>
+      async function onBeforeHandleRateLimitHandler(
+        context,
+        derived = getGeneratorDerived(context)
+      ) {
+        const { set, request, cookie } = context
         let clientKey: string | undefined
 
         const enhancedRequest = attachCookieToRequest(request, cookie)
@@ -221,7 +211,7 @@ export const plugin = function rateLimitPlugin(userOptions?: Partial<Options>) {
           clientKey = await options.generator(
             enhancedRequest,
             options.injectServer?.() ?? app.server,
-            getGeneratorDerived(context)
+            derived
           )
 
         // if decided to skip, then do nothing and let the app continue
@@ -235,7 +225,7 @@ export const plugin = function rateLimitPlugin(userOptions?: Partial<Options>) {
             clientKey = await options.generator(
               enhancedRequest,
               options.injectServer?.() ?? app.server,
-              getGeneratorDerived(context)
+              derived
             )
 
           const limitResult = await applyRateLimit(
@@ -251,17 +241,16 @@ export const plugin = function rateLimitPlugin(userOptions?: Partial<Options>) {
       }
     )
 
-    plugin.error(
-      // @ts-expect-error generated .error() types for each scope are overload and unidentical
+    plugin.onError(
       options.scoping,
-      async function onErrorRateLimitHandler({
-        request,
-        cookie,
-        set,
-      }) {
-        const context = arguments[0] as Record<string, unknown>
-        const error = context.error as unknown
-        const code = context.code as unknown
+      async function onErrorRateLimitHandler(
+        context,
+        derived = getGeneratorDerived(context)
+      ) {
+        // RC uses error details; keep supporting error codes when provided.
+        const { request, cookie, set, error, code } = context as typeof context & {
+          code?: unknown
+        }
 
         const errorDetails =
           typeof error === 'object' && error !== null
@@ -289,7 +278,7 @@ export const plugin = function rateLimitPlugin(userOptions?: Partial<Options>) {
           const clientKey = await options.generator(
             enhancedRequest,
             options.injectServer?.() ?? app.server,
-            getGeneratorDerived(context)
+            derived
           )
 
           if ((await options.skip(enhancedRequest, clientKey)) === false) {
@@ -307,7 +296,7 @@ export const plugin = function rateLimitPlugin(userOptions?: Partial<Options>) {
           const clientKey = await options.generator(
             enhancedRequest,
             options.injectServer?.() ?? app.server,
-            getGeneratorDerived(context)
+            derived
           )
 
           logger(
@@ -320,7 +309,7 @@ export const plugin = function rateLimitPlugin(userOptions?: Partial<Options>) {
       }
     )
 
-    plugin.cleanup(async function onStopRateLimitHandler() {
+    plugin.onStop(async function onStopRateLimitHandler() {
       logger('plugin', 'kill signal received')
       await options.context.kill()
     })

@@ -12,7 +12,7 @@ Lightweight rate limiter plugin for [Elysia.js](https://elysiajs.com/)
 bun add elysia-rate-limit
 ```
 
-If you're using Elysia v2.0.0 or higher, you should use `elysia-rate-limit` v5.0.0 or higher. If you're using Elysia v1.0.0, you should use version 4.6.3 or lower.
+If you're using Elysia v2.0.0-rc.0 or higher, use `elysia-rate-limit` v5.1.2 or higher. If you're using Elysia v1.x, use version 4.6.3.
 
 ## Compatibility
 
@@ -20,12 +20,16 @@ As long as you're on the latest version of Bun, and Elysia.
 Using the latest version of `elysia-rate-limit` would works just fine.
 However, please refer to the following table to determine which version to use.
 
-| Plugin version | Requirements                 |
-|----------------|------------------------------|
-| 5.0.0+         | Bun > 1.0.3, Elysia >= 2.0.0 |
-| 3.0.0 - 4.6.3  | Bun > 1.0.3, Elysia >= 1.0.0 |
-| 2.0.0 - 2.2.0  | Bun > 1.0.3, Elysia < 1.0.0  |
-| 1.0.2 - 1.3.0  | Bun <= 1.0.3, Elysia < 1.0.0 |
+| Plugin version | Requirements                                  |
+|----------------|-----------------------------------------------|
+| 5.1.2+         | Bun > 1.0.3, Elysia >= 2.0.0-rc.0              |
+| 5.0.0 - 5.1.1  | Bun > 1.0.3, Elysia 2 experimental API          |
+| 3.0.0 - 4.6.3  | Bun > 1.0.3, Elysia >= 1.0.0                    |
+| 2.0.0 - 2.2.0  | Bun > 1.0.3, Elysia < 1.0.0                     |
+| 1.0.2 - 1.3.0  | Bun <= 1.0.3, Elysia < 1.0.0                    |
+
+Versions 5.0.0–5.1.1 target Elysia's experimental lifecycle API (tested with
+`2.0.0-exp.42`) and do not support `2.0.0-rc.0`.
 
 ## Usage
 
@@ -218,16 +222,13 @@ new Elysia()
 
 ### scoping
 
-`'global' | 'scoped'`
+`'global' | 'plugin'`
 
 Default: `'global'`
 
-Sometimes you may want
-to only apply rate limit plugin to curtain Elysia instance.
-This option will allow you
-to choose scope `local` apply to only current instance and descendant only.
-But by default,
-rate limit plugin will apply to all instances that apply the plugin.
+Use `'plugin'` to apply rate limits within the Elysia instance that registers
+the plugin, without affecting parent or sibling routes. The default `'global'`
+scope applies rate limits across the application that uses the plugin.
 
 Read more : [Scope - ElysiaJS | ElysiaJS](https://elysiajs.com/essential/plugin.html#scope-level)
 
